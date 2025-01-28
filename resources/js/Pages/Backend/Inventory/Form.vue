@@ -57,7 +57,7 @@ const submit = () => {
 
                     <!-- Product Dropdown -->
                     <div class="col-span-1 md:col-span-1">
-                        <InputLabel for="category_id" value="Product Name" />
+                        <InputLabel for="category_id" value="Product Category" />
                         <select id="category_id"
                             class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
                             v-model="form.category_id">
