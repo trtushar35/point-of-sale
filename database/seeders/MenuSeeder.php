@@ -297,6 +297,35 @@ class MenuSeeder extends Seeder
                     ],
                 ],
             ],
+            [
+                'name' => 'Invoice Manage',
+                'icon' => 'dollar-sign',
+                'route' => null,
+                'description' => null,
+                'sorting' => 1,
+                'permission_name' => 'invoice-management',
+                'status' => 'Active',
+                'children' => [
+                    [
+                        'name' => 'Invoice Add',
+                        'icon' => 'plus-circle',
+                        'route' => 'backend.invoice.create',
+                        'description' => null,
+                        'sorting' => 1,
+                        'permission_name' => 'invoice-add',
+                        'status' => 'Active',
+                    ],
+                    [
+                        'name' => 'Invoice List',
+                        'icon' => 'list',
+                        'route' => 'backend.invoice.index',
+                        'description' => null,
+                        'sorting' => 1,
+                        'permission_name' => 'invoice-list',
+                        'status' => 'Active',
+                    ],
+                ],
+            ],
 
             //don't remove this comment from menu seeder
         ];

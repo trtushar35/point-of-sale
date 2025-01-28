@@ -94,4 +94,9 @@ class ProductService
 
         return $nextProductNo;
     }
+
+    public function getByProductNumber($productNo)
+    {
+        return $this->productModel->where('product_no', $productNo)->first();
+    }
 }

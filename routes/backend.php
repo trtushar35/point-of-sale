@@ -5,6 +5,7 @@ use App\Http\Controllers\Backend\CategoryController;
 use App\Http\Controllers\Backend\ColorController;
 use App\Http\Controllers\Backend\DashboardController;
 use App\Http\Controllers\Backend\InventoryController;
+use App\Http\Controllers\Backend\InvoiceController;
 use App\Http\Controllers\Backend\ModuleMakerController;
 use App\Http\Controllers\Backend\PermissionController;
 use App\Http\Controllers\Backend\ProductController;
@@ -85,6 +86,11 @@ Route::group(['middleware' => 'AdminAuth'], function () {
     // for Color
     Route::resource('Color', ColorController::class);
     Route::get('Color/{id}/status/{status}/change', [ColorController::class, 'changeStatus'])->name('Color.status.change');
+    
+    // for Invoice
+    Route::resource('invoice', InvoiceController::class);
+    Route::get('invoice/{id}/status/{status}/change', [InvoiceController::class, 'changeStatus'])->name('invoice.status.change');
+    Route::get('/product-details/{product_no}', [InvoiceController::class, 'productDetails'])->name('product.details');
 
     //don't remove this comment from route body
 });
