@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue';
+import { ref, onMounted, watch, computed } from 'vue';
 import BackendLayout from '@/Layouts/BackendLayout.vue';
 import { router, useForm, usePage } from '@inertiajs/vue3';
 import InputError from '@/Components/InputError.vue';
@@ -8,17 +8,57 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import AlertMessage from '@/Components/AlertMessage.vue';
 import { displayResponse, displayWarning } from '@/responseMessage.js';
 
-const props = defineProps(['inventory', 'id', 'categories']);
+const props = defineProps(['inventory', 'id', 'categories', 'colors', 'sizes']);
 
 const form = useForm({
     product_no: props.inventory?.product_no ?? '',
     category_id: props.inventory?.category_id ?? '',
-    quantity: props.inventory?.quantity ?? '',
-    stock_in: props.inventory?.stock_in ?? '',
-    stock_out: props.inventory?.stock_out ?? '',
-    sku: props.inventory?.sku ?? '',
+    color_id: props.inventory?.color_id ?? '',
+    size_id: props.inventory?.size_id ?? '',
+    quantity: props.inventory?.quantity ?? 1,
     _method: props.inventory?.id ? 'put' : 'post',
 });
+
+const productDetails = ref(null);
+
+const fetchProductDetails = async (productNo) => {
+    try {
+        const response = await axios.get(route('backend.product.details', { product_no: productNo }));
+
+        productDetails.value = response.data;
+
+        form.product_no = productDetails.value.product_no ?? '';
+        form.name = productDetails.value.name ?? '';
+        form.color_id = productDetails.value.color?.id ?? '';
+        form.size_id = productDetails.value.size?.id ?? '';
+        form.price = productDetails.value.price ?? '';
+        form.total_price = productDetails.value.total_price ?? '';
+        form.category_id = productDetails.value.category?.id ?? '';
+
+        fetchCategoryWiseSize();
+    } catch (error) {
+        form.name = '';
+        form.color_id = '';
+        form.size_id = '';
+        form.price = '';
+        form.total_price = '';
+        form.category_id = '';
+    }
+};
+
+watch(() => form.product_no, (newProductNo) => {
+    if (newProductNo) {
+        fetchProductDetails(newProductNo);
+    }
+});
+
+const incrementQuantity = () => {
+    form.quantity++;
+};
+
+const decrementQuantity = () => {
+    if (form.quantity > 1) form.quantity--;
+};
 
 const submit = () => {
     const routeName = props.id ? route('backend.invoice.update', props.id) : route('backend.invoice.store');
@@ -37,13 +77,97 @@ const submit = () => {
     });
 };
 
-watch(() => form.product_no, (newProductNo) => {
-  console.log(newProductNo); 
-  if (newProductNo) {
-    router.visit( route('backend.product.details', { product_no:newProductNo }) );
-  }
+const productsTable = ref([]);
+
+const addProductToTable = () => {
+    const existingProductIndex = productsTable.value.findIndex(
+        (product) => product.product_no === form.product_no
+    );
+
+    if (existingProductIndex !== -1) {
+        productsTable.value[existingProductIndex].quantity += form.quantity;
+    } else {
+        const product = {
+            product_no: form.product_no,
+            name: form.name,
+            color: form.color_id,
+            size: form.size_id,
+            category: form.category_id,
+            price: form.price,
+            quantity: form.quantity,
+        };
+
+        productsTable.value.push({ ...product });
+    }
+
+    form.product_no = '';
+    form.name = '';
+    form.category_id = '';
+    form.color_id = '';
+    form.size_id = '';
+    form.price = '';
+    form.quantity = 1;
+};
+
+const totalPrice = computed(() => {
+    return productsTable.value.reduce((total, product) => {
+        return total + (product.price * product.quantity);
+    }, 0);
 });
 
+const removeProduct = (index) => {
+    productsTable.value.splice(index, 1);
+};
+
+const availableSizes = ref([]);
+
+const fetchCategoryWiseSize = async () => {
+    const categoryId = form.category_id;
+
+    if (!categoryId) {
+        form.size_id = '';
+        availableSizes.value = [];
+        return;
+    }
+
+    try {
+        const response = await axios.get(route("backend.product.categoryWiseSize", categoryId));
+
+        if (response.data && Array.isArray(response.data)) {
+            availableSizes.value = response.data;
+
+            if (form.size_id && !availableSizes.value.some(size => size.id === form.size_id)) {
+                form.size_id = '';
+            }
+        }
+    } catch (error) {
+        console.error("Error fetching sizes:", error);
+        displayWarning(error);
+    }
+};
+
+watch(() => form.category_id, fetchCategoryWiseSize);
+
+onMounted(() => {
+    if (form.category_id) {
+        fetchCategoryWiseSize();
+    }
+});
+
+const getCategoryName = (categoryId) => {
+    const category = props.categories.find(c => c.id === categoryId);
+    return category ? category.name : 'N/A';
+};
+
+const getColorName = (colorId) => {
+    const color = props.colors.find(c => c.id === colorId);
+    return color ? color.name : 'N/A'; 
+};
+
+const getSizeName = (sizeId) => {
+    const size = props.sizes.find(s => s.id === sizeId);
+    return size ? size.size : 'N/A'; 
+};
 
 </script>
 
@@ -51,7 +175,6 @@ watch(() => form.product_no, (newProductNo) => {
     <BackendLayout>
         <div
             class="w-full mt-3 transition duration-1000 ease-in-out transform bg-white border border-gray-700 rounded-md shadow-lg shadow-gray-800/50 dark:bg-slate-900">
-
             <div
                 class="flex items-center justify-between w-full text-gray-700 bg-gray-100 rounded-md shadow-md dark:bg-gray-800 dark:text-gray-200 shadow-gray-800/50">
                 <div>
@@ -73,33 +196,138 @@ watch(() => form.product_no, (newProductNo) => {
                         <InputError class="mt-2" :message="form.errors.product_no" />
                     </div>
 
-                    <!-- Stock In Field -->
+                    <!-- Product Name Field -->
                     <div class="col-span-1 md:col-span-1">
-                        <InputLabel for="stock_in" value="Stock In" />
-                        <input id="stock_in"
+                        <InputLabel for="name" value="Name" />
+                        <input id="name"
                             class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
-                            v-model="form.stock_in" type="text" placeholder="Stock In" />
-                        <InputError class="mt-2" :message="form.errors.stock_in" />
+                            v-model="form.name" type="text" placeholder="Name" />
+                        <InputError class="mt-2" :message="form.errors.name" />
                     </div>
 
-                    <!-- Stock Out Field -->
+                    <!-- Color Dropdown -->
                     <div class="col-span-1 md:col-span-1">
-                        <InputLabel for="stock_out" value="Stock Out" />
-                        <input id="stock_out"
+                        <InputLabel for="color" value="Color" />
+                        <select id="color"
                             class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
-                            v-model="form.stock_out" type="text" placeholder="Stock Out" />
-                        <InputError class="mt-2" :message="form.errors.stock_out" />
+                            v-model="form.color_id">
+                            <option value="">Select Color</option>
+                            <option v-for="color in colors" :key="color.id" :value="color.id">{{ color.name }}</option>
+                        </select>
+                        <InputError class="mt-2" :message="form.errors.color" />
                     </div>
 
-                    <!-- SKU Field -->
+                    <!-- Category Dropdown -->
                     <div class="col-span-1 md:col-span-1">
-                        <InputLabel for="sku" value="SKU" />
-                        <input id="sku"
+                        <InputLabel for="category_id" value="Category" />
+                        <select id="category_id"
                             class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
-                            v-model="form.sku" type="number" placeholder="SKU" />
-                        <InputError class="mt-2" :message="form.errors.sku" />
+                            v-model="form.category_id">
+                            <option value="">Select Category</option>
+                            <option v-for="category in categories" :key="category.id" :value="category.id">{{
+                                category.name }}</option>
+                        </select>
+                        <InputError class="mt-2" :message="form.errors.category_id" />
                     </div>
 
+                    <!-- Size Field -->
+                    <div class="col-span-1 md:col-span-1">
+                        <InputLabel for="size_id" value="Size" />
+                        <select id="size_id"
+                            class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
+                            v-model="form.size_id">
+                            <option value="">Select Size</option>
+                            <option v-for="size in availableSizes" :key="size.id" :value="size.id">{{ size.size }}
+                            </option>
+                        </select>
+                        <InputError class="mt-2" :message="form.errors.size_id" />
+                    </div>
+
+                    <!-- Product Price Field -->
+                    <div class="col-span-1 md:col-span-1">
+                        <InputLabel for="price" value="Price" />
+                        <input id="price"
+                            class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
+                            v-model="form.price" type="text" placeholder="Price" />
+                        <InputError class="mt-2" :message="form.errors.price" />
+                    </div>
+
+                    <!-- Product Quantity Field -->
+                    <div class="col-span-1 md:col-span-1">
+                        <InputLabel for="quantity" value="Quantity" />
+                        <div class="flex items-center space-x-2">
+                            <!-- Decrement Button -->
+                            <button type="button" @click="decrementQuantity"
+                                class="p-2 text-white bg-red-500 rounded-md hover:bg-red-700">
+                                -
+                            </button>
+
+                            <input id="quantity"
+                                class="w-20 p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600 text-center"
+                                v-model="form.quantity" type="number" min="1" readonly />
+
+                            <!-- Increment Button -->
+                            <button type="button" @click="incrementQuantity"
+                                class="p-2 text-white bg-green-500 rounded-md hover:bg-green-700">
+                                +
+                            </button>
+                        </div>
+                        <InputError class="mt-2" :message="form.errors.quantity" />
+                    </div>
+
+                    <div class="flex items-center justify-start mt-6">
+                        <PrimaryButton type="button" @click="addProductToTable" class="ms-4">
+                            Add Product
+                        </PrimaryButton>
+                    </div>
+                </div>
+
+                <!-- product added table -->
+                <div class="overflow-x-auto mt-20">
+                    <table
+                        class="min-w-full bg-white dark:bg-slate-900 border border-gray-300 dark:border-slate-700 rounded-md shadow-md">
+                        <thead>
+                            <tr class="text-center">
+                                <th class="py-2 px-4 border-b">Product No</th>
+                                <th class="py-2 px-4 border-b border-l">Name</th>
+                                <th class="py-2 px-4 border-b border-l">Category</th>
+                                <th class="py-2 px-4 border-b border-l">Color</th>
+                                <th class="py-2 px-4 border-b border-l">Size</th>
+                                <th class="py-2 px-4 border-b border-l">Price</th>
+                                <th class="py-2 px-4 border-b border-l">Quantity</th>
+                                <th class="py-2 px-4 border-b border-l" colspan="2">Total Price</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-center">
+                            <tr v-for="(product, index) in productsTable" :key="index">
+                                <td class="py-2 px-4 border-b border-l">{{ product.product_no }}</td>
+                                <td class="py-2 px-4 border-b border-l">{{ product.name }}</td>
+                                <td class="py-2 px-4 border-b border-l">{{ getCategoryName(product.category) }}</td>
+                                <td class="py-2 px-4 border-b border-l">{{ getColorName(product.color) }}</td>
+                                <td class="py-2 px-4 border-b border-l">{{ getSizeName(product.size) }}</td>
+                                <td class="py-2 px-4 border-b border-l">{{ product.price }}</td>
+                                <td class="py-2 px-4 border-b border-l">{{ product.quantity }}</td>
+                                <td class="py-2 px-4 border-b border-l text-right" colspan="2">
+                                    <div class="flex items-center justify-end space-x-2">
+                                        <span>{{ (product.price * product.quantity).toFixed(2) }}</span>
+                                        <svg @click="removeProduct(index)" xmlns="http://www.w3.org/2000/svg"
+                                            class="w-5 h-5 text-red-500 cursor-pointer hover:text-red-700" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M19 7l-2-2m0 0L12 2 7 5l2 2m-2-2v14a2 2 0 002 2h8a2 2 0 002-2V7h-4V5h-4v2H7z" />
+                                        </svg>
+                                    </div>
+                                </td>
+                            </tr>
+
+                        </tbody>
+                        <tfoot>
+                            <tr>
+                                <td class="py-2 px-4 border-b text-center" colspan="7">Total Price</td>
+                                <td class="py-2 px-4 border-b border-l text-right mr-6">{{ totalPrice.toFixed(2) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
                 </div>
 
                 <!-- Submit Button -->

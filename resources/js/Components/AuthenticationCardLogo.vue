@@ -1,6 +1,6 @@
 <script setup>
 import { Link } from '@inertiajs/vue3';
-import logo from '/public/assets/logo.png';
+import logo from '/public/assets/logo.jpeg';
 const imageUrl = logo;
 
 </script>

@@ -3,8 +3,12 @@
 namespace App\Http\Controllers\Backend;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\InvoiceRequest;
+use App\Services\CategoryService;
+use App\Services\ColorService;
 use App\Services\InvoiceService;
 use App\Services\ProductService;
+use App\Services\SizeService;
 use App\Traits\SystemTrait;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -13,12 +17,16 @@ class InvoiceController extends Controller
 {
     use SystemTrait;
 
-    protected $invoiceService, $productService;
+    protected $invoiceService, $productService, $colorService, $categoryService, $sizeService;
 
-    public function __construct(InvoiceService $invoiceService, ProductService $productService)
+    public function __construct(InvoiceService $invoiceService, ProductService $productService, ColorService $colorService, CategoryService $categoryService, SizeService $sizeService)
     {
         $this->invoiceService = $invoiceService;
         $this->productService = $productService;
+        $this->sizeService = $sizeService;
+        $this->categoryService = $categoryService;
+        $this->colorService = $colorService;
+        
     }
 
     public function index()
@@ -150,6 +158,9 @@ class InvoiceController extends Controller
                     ['link' => null, 'title' => 'Invoice Manage'],
                     ['link' => route('backend.invoice.create'), 'title' => 'Invoice Create'],
                 ],
+                'colors' => fn() => $this->colorService->activeList()->get(),
+                'categories' => fn() => $this->categoryService->activeList()->get(),
+                'sizes' => fn() => $this->sizeService->activeList()->get(),
             ]
         );
     }
@@ -157,6 +168,16 @@ class InvoiceController extends Controller
     public function productDetails($productNo)
     {
         $productDetails = $this->productService->getByProductNumber($productNo);
-        dd($productDetails);
+
+        if ($productDetails) {
+            return response()->json($productDetails);
+        }
+
+        return response()->json(['message' => 'Product not found'], 404);
+    }
+
+    public function store(InvoiceRequest $request)
+    {
+        dd($request->all());
     }
 }
