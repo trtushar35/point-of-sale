@@ -56,15 +56,6 @@ class MenuSeeder extends Seeder
                 'permission_name' => 'dashboard',
                 'status' => 'Active',
             ],
-            // [
-            //     'name' => 'Module Make',
-            //     'icon' => 'slack',
-            //     'route' => 'backend.moduleMaker',
-            //     'description' => null,
-            //     'sorting' => 1,
-            //     'permission_name' => 'module maker',
-            //     'status' => 'Active',
-            // ],
             [
                 'name' => 'User Manage',
                 'icon' => 'user',

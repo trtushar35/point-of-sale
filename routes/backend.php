@@ -54,8 +54,6 @@ Route::group(['middleware' => 'AdminAuth'], function () {
 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    Route::match(['get', 'post'], '/module-make', [ModuleMakerController::class, 'index'])->name('moduleMaker');
-
     Route::resource('admin', AdminController::class);
     Route::get('admin/{id}/status/{status}/change', [AdminController::class, 'changeStatus'])->name('admin.status.change');
 
