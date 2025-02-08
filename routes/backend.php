@@ -90,5 +90,6 @@ Route::group(['middleware' => 'AdminAuth'], function () {
     Route::get('invoice/{id}/status/{status}/change', [InvoiceController::class, 'changeStatus'])->name('invoice.status.change');
     Route::get('/product-details/{product_no}', [InvoiceController::class, 'productDetails'])->name('product.details');
 
+    
     //don't remove this comment from route body
 });

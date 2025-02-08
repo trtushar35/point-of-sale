@@ -62,6 +62,9 @@ const decrementQuantity = () => {
 
 const submit = () => {
     const routeName = props.id ? route('backend.invoice.update', props.id) : route('backend.invoice.store');
+
+    form.products = productsTable.value;
+
     form.transform(data => ({
         ...data,
         remember: '',
