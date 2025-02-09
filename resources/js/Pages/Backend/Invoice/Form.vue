@@ -63,12 +63,15 @@ const decrementQuantity = () => {
 const submit = () => {
     const routeName = props.id ? route('backend.invoice.update', props.id) : route('backend.invoice.store');
 
-    form.products = productsTable.value;
+    const formData = {
+        products: productsTable.value,
+        total_price: totalPrice.value,  
+    };
 
     form.transform(data => ({
         ...data,
-        remember: '',
-        isDirty: false,
+        products: formData.products,
+        total_price: formData.total_price 
     })).post(routeName, {
         onSuccess: (response) => {
             if (!props.id) form.reset();
@@ -164,12 +167,12 @@ const getCategoryName = (categoryId) => {
 
 const getColorName = (colorId) => {
     const color = props.colors.find(c => c.id === colorId);
-    return color ? color.name : 'N/A'; 
+    return color ? color.name : 'N/A';
 };
 
 const getSizeName = (sizeId) => {
     const size = props.sizes.find(s => s.id === sizeId);
-    return size ? size.size : 'N/A'; 
+    return size ? size.size : 'N/A';
 };
 
 </script>
@@ -267,7 +270,7 @@ const getSizeName = (sizeId) => {
 
                             <input id="quantity"
                                 class="w-20 p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600 text-center"
-                                v-model="form.quantity" type="number" min="1" readonly />
+                                v-model="form.quantity" type="number" min="1" />
 
                             <!-- Increment Button -->
                             <button type="button" @click="incrementQuantity"
@@ -312,12 +315,13 @@ const getSizeName = (sizeId) => {
                                 <td class="py-2 px-4 border-b border-l">{{ product.quantity }}</td>
                                 <td class="py-2 px-4 border-b border-l text-right" colspan="2">
                                     <div class="flex items-center justify-end space-x-2">
-                                        <span>{{ (product.price * product.quantity).toFixed(2) }}</span>
+                                        <span>{{ (product.price *
+                                            product.quantity).toFixed(2) }}</span>
                                         <svg @click="removeProduct(index)" xmlns="http://www.w3.org/2000/svg"
-                                            class="w-5 h-5 text-red-500 cursor-pointer hover:text-red-700" fill="none"
-                                            viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                d="M19 7l-2-2m0 0L12 2 7 5l2 2m-2-2v14a2 2 0 002 2h8a2 2 0 002-2V7h-4V5h-4v2H7z" />
+                                            class="w-6 h-6 text-red-500 cursor-pointer hover:text-red-700"
+                                            fill="currentColor" viewBox="0 0 24 24">
+                                            <path
+                                                d="M6 19C6 19.5523 6.44772 20 7 20H17C17.5523 20 18 19.5523 18 19V9H6V19ZM16 3H8V4H6C5.44772 4 5 4.44772 5 5V6H19V5C19 4.44772 18.5523 4 18 4H16V3Z" />
                                         </svg>
                                     </div>
                                 </td>
@@ -335,9 +339,9 @@ const getSizeName = (sizeId) => {
 
                 <!-- Submit Button -->
                 <div class="flex items-center justify-end mt-4">
-                    <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }"
+                    <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }" @click="submit"
                         :disabled="form.processing">
-                        {{ props.id ? 'Update' : 'Create' }}
+                        Submit
                     </PrimaryButton>
                 </div>
             </form>

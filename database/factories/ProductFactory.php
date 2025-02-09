@@ -19,32 +19,15 @@ class ProductFactory extends Factory
      */
     public function definition()
     {
-        $categories = [
-            'Shirt' => ['S', 'M', 'L', 'XL'],
-            'Pant' => ['30', '32', '34'],
-            'Jeans' => ['30', '32', '34', '36'],
-            'T-Shirt' => ['S', 'M', 'L', 'XL'],
-            'Polo' => ['S', 'M', 'L', 'XL'],
-            'Full Sleeve Shirt' => ['S', 'M', 'L', 'XL'],
-            'Half Sleeve Shirt' => ['S', 'M', 'L', 'XL'],
-        ];
+        $category = Category::inRandomOrder()->first();
 
-        foreach ($categories as $categoryName => $sizes) {
-            $category = Category::create(['name' => $categoryName]);
-
-            foreach ($sizes as $size) {
-                Size::create([
-                    'category_id' => $category->id,
-                    'size' => $size
-                ]);
-            }
-        }
+        $sizeId = Size::where('category_id', $category->id)->inRandomOrder()->first();
 
         return [
             'name' => $this->faker->words(2, true),
             'color_id' => Color::inRandomOrder()->first()->id,
-            'category_id' => $category->id, // Use the found category id
-            'size_id' => $size->id, // Ensure the size id is not null
+            'category_id' => $category->id, 
+            'size_id' => $sizeId,
             'product_no' => $this->faker->unique()->numerify('P######'),
             'price' => $this->faker->randomFloat(2, 10, 1000),
             'image' => $this->faker->imageUrl(100, 100, 'fashion'),

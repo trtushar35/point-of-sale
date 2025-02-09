@@ -43,7 +43,5 @@ class ColorSeeder extends Seeder
             ]);
         }
 
-        // Alternatively, if you prefer using the DB facade for bulk insertion:
-        // DB::table('colors')->insert(array_map(fn($color) => ['name' => $color], $colors));
     }
 }

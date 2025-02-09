@@ -3,7 +3,8 @@
 namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
-use App\Models\Category; 
+use App\Models\Category;
+use App\Models\Size;
 
 class CategorySeeder extends Seeder
 {
@@ -15,23 +16,24 @@ class CategorySeeder extends Seeder
     public function run()
     {
         $categories = [
-            'Shirt', 
-            'Half Sleeve Shirt', 
-            'Full Sleeve Shirt',
-            'Pant',
-            'Gabardine ',
-            'T-Shirt',
-            'Panjabi',
-            'Polo',
-            'Jeans',
-            'Jacket',
+            'Shirt' => ['S', 'M', 'L', 'XL'],
+            'Pant' => ['30', '32', '34'],
+            'Jeans' => ['30', '32', '34', '36'],
+            'T-Shirt' => ['S', 'M', 'L', 'XL'],
+            'Polo' => ['S', 'M', 'L', 'XL'],
+            'Full Sleeve Shirt' => ['S', 'M', 'L', 'XL'],
+            'Half Sleeve Shirt' => ['S', 'M', 'L', 'XL'],
         ];
 
-        foreach ($categories as $data) {
-            Category::create([
-                'name' => $data
-            ]);
-        }
+        foreach ($categories as $categoryName => $sizes) {
+            $category = Category::firstOrCreate(['name' => $categoryName]);
 
+            foreach ($sizes as $size) {
+                Size::firstOrCreate([
+                    'category_id' => $category->id,
+                    'size' => $size,
+                ]);
+            }
+        }
     }
 }
