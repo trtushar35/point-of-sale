@@ -11,11 +11,11 @@ import { displayResponse, displayWarning } from '@/responseMessage.js';
 const props = defineProps(['inventory', 'id', 'categories', 'colors', 'sizes']);
 
 const form = useForm({
-    // product_no: props.inventory?.product_no ?? '',
-    // category_id: props.inventory?.category_id ?? '',
-    // color_id: props.inventory?.color_id ?? '',
-    // size_id: props.inventory?.size_id ?? '',
-    quantity: 1, // Fixed quantity to 1
+    product_no: props.inventory?.product_no ?? '',
+    category_id: props.inventory?.category_id ?? '',
+    color_id: props.inventory?.color_id ?? '',
+    size_id: props.inventory?.size_id ?? '',
+    quantity: props.inventory?.quantity ?? 1,
     _method: props.inventory?.id ? 'put' : 'post',
 });
 
@@ -51,6 +51,14 @@ watch(() => form.product_no, (newProductNo) => {
         fetchProductDetails(newProductNo);
     }
 });
+
+const incrementQuantity = () => {
+    form.quantity++;
+};
+
+const decrementQuantity = () => {
+    if (form.quantity > 1) form.quantity--;
+};
 
 const submit = () => {
     const routeName = props.id ? route('backend.invoice.update', props.id) : route('backend.invoice.store');
@@ -104,7 +112,7 @@ const addProductToTable = () => {
     form.color_id = '';
     form.size_id = '';
     form.price = '';
-    form.quantity = 1; // Reset quantity to 1 after adding to table
+    form.quantity = 1;
 };
 
 const totalPrice = computed(() => {
@@ -253,9 +261,23 @@ const getSizeName = (sizeId) => {
                     <!-- Product Quantity Field -->
                     <div class="col-span-1 md:col-span-1">
                         <InputLabel for="quantity" value="Quantity" />
-                        <input id="quantity"
-                            class="w-14 p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600 text-start"
-                            v-model="form.quantity" type="number" min="1" readonly />
+                        <div class="flex items-center space-x-2">
+                            <!-- Decrement Button -->
+                            <button type="button" @click="decrementQuantity"
+                                class="p-2 text-white bg-red-500 rounded-md hover:bg-red-700">
+                                -
+                            </button>
+
+                            <input id="quantity"
+                                class="w-20 p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600 text-center"
+                                v-model="form.quantity" type="number" min="1" />
+
+                            <!-- Increment Button -->
+                            <button type="button" @click="incrementQuantity"
+                                class="p-2 text-white bg-green-500 rounded-md hover:bg-green-700">
+                                +
+                            </button>
+                        </div>
                         <InputError class="mt-2" :message="form.errors.quantity" />
                     </div>
 
