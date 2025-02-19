@@ -57,13 +57,13 @@ const submit = () => {
 
     const formData = {
         products: productsTable.value,
-        total_price: totalPrice.value,  
+        total_price: totalPrice.value,
     };
 
     form.transform(data => ({
         ...data,
         products: formData.products,
-        total_price: formData.total_price 
+        total_price: formData.total_price
     })).post(routeName, {
         onSuccess: (response) => {
             if (!props.id) form.reset();
@@ -83,20 +83,29 @@ const addProductToTable = () => {
     );
 
     if (existingProductIndex !== -1) {
-        productsTable.value[existingProductIndex].quantity += form.quantity;
-    } else {
-        const product = {
-            product_no: form.product_no,
-            name: form.name,
-            color: form.color_id,
-            size: form.size_id,
-            category: form.category_id,
-            price: form.price,
-            quantity: form.quantity,
-        };
-
-        productsTable.value.push({ ...product });
+        popupMessage.value = 'Product already exists in the table.';
+        popupType.value = 'error';
+        showPopup.value = true;
+        setTimeout(() => showPopup.value = false, 2000);
+        return;
     }
+
+    const product = {
+        product_no: form.product_no,
+        name: form.name,
+        color: form.color_id,
+        size: form.size_id,
+        category: form.category_id,
+        price: form.price,
+        quantity: form.quantity,
+    };
+
+    productsTable.value.push({ ...product });
+
+    popupMessage.value = 'Product added successfully.';
+    popupType.value = 'success';
+    showPopup.value = true;
+    setTimeout(() => showPopup.value = false, 2000);
 
     form.product_no = '';
     form.name = '';
@@ -104,8 +113,12 @@ const addProductToTable = () => {
     form.color_id = '';
     form.size_id = '';
     form.price = '';
-    form.quantity = 1; // Reset quantity to 1 after adding to table
+    form.quantity = 1;
 };
+
+const showPopup = ref(false);
+const popupMessage = ref('');
+const popupType = ref('');
 
 const totalPrice = computed(() => {
     return productsTable.value.reduce((total, product) => {
@@ -183,6 +196,12 @@ const getSizeName = (sizeId) => {
 
             <form @submit.prevent="submit" class="p-4">
                 <AlertMessage />
+
+                <div v-if="showPopup"
+                    :class="['fixed top-2 right-4 p-4 rounded-lg shadow-lg text-white', popupType === 'success' ? 'bg-green-500' : 'bg-red-500']">
+                    {{ popupMessage }}
+                </div>
+
                 <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
 
                     <!-- Product Number Field -->
