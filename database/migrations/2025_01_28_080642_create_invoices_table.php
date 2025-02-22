@@ -15,10 +15,10 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
-            $table->date('invoice_date');
+            $table->dateTime('invoice_date');
             $table->decimal('total_price', 11,2);
 
-            $table->enum('status', ['Active', 'Inactive', 'Delete']);
+            $table->enum('status', ['Active', 'Inactive', 'Delete'])->default('Active');
             $table->timestamps();
             $table->softDeletes();
         });

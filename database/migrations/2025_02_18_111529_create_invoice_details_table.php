@@ -15,7 +15,16 @@ return new class extends Migration
     {
         Schema::create('invoice_details', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('invoice_id');
+            $table->foreign('invoice_id')->references('id')->on('invoices')->onDelete('cascade');
+            $table->unsignedBigInteger('product_id');
+            $table->foreign('product_id')->references('id')->on('products')->onDelete('cascade');
+            $table->decimal('price', 11,2);
+            $table->integer('quantity');
+
+            $table->enum('status', ['Active', 'Inactive', 'Deleted'])->default('Active');
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 

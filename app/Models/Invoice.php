@@ -9,9 +9,17 @@ class Invoice extends Model
 {
     use HasFactory;
 
-    protected $fillable = [
-        'invoice_date',
-        'total_price',
-        'status',
-    ];
+    protected $guarded = [];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::saving(function ($model) {
+            $model->created_at=date('Y-m-d H:i:s');
+        });
+
+        static::updating( function ( $model ) {
+            $model->updated_at=date('Y-m-d H:i:s');
+        } );
+    }
 }

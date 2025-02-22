@@ -6,27 +6,29 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InvoiceRequest;
 use App\Services\CategoryService;
 use App\Services\ColorService;
+use App\Services\InvoiceDetailService;
 use App\Services\InvoiceService;
 use App\Services\ProductService;
 use App\Services\SizeService;
 use App\Traits\SystemTrait;
-use Illuminate\Http\Request;
+use Exception;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class InvoiceController extends Controller
 {
     use SystemTrait;
 
-    protected $invoiceService, $productService, $colorService, $categoryService, $sizeService;
+    protected $invoiceService, $productService, $colorService, $categoryService, $sizeService, $invoiceDetailsService;
 
-    public function __construct(InvoiceService $invoiceService, ProductService $productService, ColorService $colorService, CategoryService $categoryService, SizeService $sizeService)
+    public function __construct(InvoiceService $invoiceService, ProductService $productService, ColorService $colorService, CategoryService $categoryService, SizeService $sizeService, InvoiceDetailService $invoiceDetailsService)
     {
         $this->invoiceService = $invoiceService;
         $this->productService = $productService;
         $this->sizeService = $sizeService;
         $this->categoryService = $categoryService;
         $this->colorService = $colorService;
-        
+        $this->invoiceDetailsService = $invoiceDetailsService;
     }
 
     public function index()
@@ -39,6 +41,9 @@ class InvoiceController extends Controller
                     ['link' => null, 'title' => 'Invoice Manage'],
                     ['link' => route('backend.invoice.index'), 'title' => 'Invoice List'],
                 ],
+                'tableHeaders' => fn() => $this->getTableHeaders(),
+                'dataFields' => fn() => $this->getDataFields(),
+                'datas' => fn() => $this->getDatas(),
             ]
         );
     }
@@ -47,12 +52,10 @@ class InvoiceController extends Controller
     {
         return [
             ['fieldName' => 'index', 'class' => 'text-center'],
-            ['fieldName' => 'order_date', 'class' => 'text-center'],
-            ['fieldName' => 'order_id', 'class' => 'text-center'],
-            ['fieldName' => 'patient_id', 'class' => 'text-center'],
+            ['fieldName' => 'invoice_date', 'class' => 'text-center'],
+            ['fieldName' => 'invoice_no', 'class' => 'text-center'],
+            ['fieldName' => 'product_no', 'class' => 'text-center'],
             ['fieldName' => 'total', 'class' => 'text-center'],
-            // ['fieldName' => 'branch_id', 'class' => 'text-center'],
-            // ['fieldName' => 'billing_module_id', 'class' => 'text-center'],
             ['fieldName' => 'status', 'class' => 'text-center'],
         ];
     }
@@ -60,69 +63,38 @@ class InvoiceController extends Controller
     {
         return [
             'Sl/No',
-            'Order Date',
-            'Order ID',
-            // 'Branch Id',
-            // 'Billing Module',
-            'Person Name',
+            'Invoice Date',
+            'Invoice No',
+            'Product No',
             'Total',
-            'Payment Status',
+            'Status',
             'Action'
         ];
     }
 
     private function getDatas()
     {
-        $query = $this->invoiceService->list();
-
-        $query->whereHas('invoiceData', function ($q) {
-            $q->whereNull('room_id')->whereNull('bed_id');
-        });
-
-        if (request()->filled('order_id')) {
-            //invoice_id = order_id
-            $invoice_id = '%' . request()->order_id . '%';
-            $query->where('id', 'like', $invoice_id);
-        }
-
-        if (request()->filled('name')) {
-            $name = '%' . request()->name . '%';
-            $query->where(function ($query) use ($name) {
-                $query->whereHas('branch', function ($q) use ($name) {
-                    $q->orWhere('name', 'like', $name);
-                })->orWhereHas('patient', function ($q) use ($name) {
-                    $q->orWhere('name', 'like', $name);
-                })->orWhereHas('admin', function ($q) use ($name) {
-                    $q->orWhere('first_name', 'like', $name)
-                        ->orWhere('last_name', 'like', $name);
-                });
-            });
-        }
+        $query = $this->invoiceDetailsService->list();
 
         $datas = $query->paginate(request()->numOfData ?? 10)->withQueryString();
         $formatedDatas = $datas->map(function ($data, $index) {
 
-            $firstName = $data->admin?->first_name ?? '';
-            $lastName = $data->admin?->last_name ?? '';
             $customData = new \stdClass();
             $customData->index = $index + 1;
-            $customData->order_date = date('d M Y H:i A', strtotime($data->created_at));
-            $customData->order_id = $data->id;
-            $customData->patient_id = $data->patient?->name ?? ($firstName . ' ' . $lastName) ?? '';
-            $customData->total = $data->total_price;
-            // $customData->branch_id = $data->branch?->name ?? '';
-            // $customData->billing_module_id = $data->billingModule?->name ?? '';
-            $customData->source = $data->invoice_data->source ?? '';
+            $customData->invoice_date = date('d M Y H:i A', strtotime($data->invoice->invoice_date));
+            $customData->invoice_no = $data->invoice->id;
+            $customData->product_no = $data->product->product_no;
+            $customData->total = $data->invoice->total_price;
 
-            $customData->status = $data->payment_status ?? "";
+            $customData->status = $data->status ?? "";
             $customData->hasLink = true;
             $customData->links = [
 
-                // [
-                //     'linkClass' => 'semi-bold text-white statusChange ' . (($data->status == 'Active') ? "bg-gray-500" : "bg-green-500"),
-                //     'link' => route('backend.invoice.status.change', ['id' => $data->id, 'status' => $data->status == 'Active' ? 'Inactive' : 'Active']),
-                //     'linkLabel' => getLinkLabel((($data->status == 'Active') ? "Inactive" : "Active"), null, null)
-                // ],
+                [
+                    'linkClass' => 'semi-bold text-white statusChange ' . (($data->status == 'Active') ? "bg-gray-500" : "bg-green-500"),
+                    'link' => route('backend.invoice.status.change', ['id' => $data->id, 'status' => $data->status == 'Active' ? 'Inactive' : 'Active']),
+                    'linkLabel' => getLinkLabel((($data->status == 'Active') ? "Inactive" : "Active"), null, null)
+                ],
 
                 [
                     'linkClass' => 'bg-green-600 text-white semi-bold',
@@ -178,6 +150,40 @@ class InvoiceController extends Controller
 
     public function store(InvoiceRequest $request)
     {
-        dd($request->all());
+        DB::beginTransaction();
+        try {
+            $data = $request->validated();
+
+            $invoiceData = [
+                'invoice_date' => now(), 
+                'total_price' => $data['total_price']
+            ];
+            $invoiceInformation = $this->invoiceService->create($invoiceData);
+
+            foreach ($data['products'] as $product) {
+
+                $productDetails = $this->productService->getByProductNumber($product['product_no']);
+
+                $invoiceDetailsData = [
+                    'invoice_id' => $invoiceInformation->id, 
+                    'product_id' => $productDetails->id,
+                    'price' => $product['price'],
+                    'quantity' => $product['quantity']
+                ];
+                $this->invoiceDetailsService->create($invoiceDetailsData); 
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->back()
+                ->with('successMessage', 'Invoice created successfully');
+        } catch (Exception $err) {
+            DB::rollBack();
+            $this->storeSystemError('Backend', 'InvoiceController', 'store', substr($err->getMessage(), 0, 1000));
+            return redirect()
+                ->back()
+                ->with('errorMessage', 'Server Errors Occur. Please Try Again.');
+        }
     }
 }

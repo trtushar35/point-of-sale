@@ -15,7 +15,7 @@ const form = useForm({
     // category_id: props.inventory?.category_id ?? '',
     // color_id: props.inventory?.color_id ?? '',
     // size_id: props.inventory?.size_id ?? '',
-    quantity: 1, // Fixed quantity to 1
+    quantity: 1,
     _method: props.inventory?.id ? 'put' : 'post',
 });
 
@@ -66,6 +66,10 @@ const submit = () => {
         total_price: formData.total_price
     })).post(routeName, {
         onSuccess: (response) => {
+            form.reset();
+
+            productsTable.value = [];
+
             if (!props.id) form.reset();
             displayResponse(response);
         },
