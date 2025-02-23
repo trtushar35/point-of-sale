@@ -15,11 +15,16 @@ class Invoice extends Model
     {
         parent::boot();
         static::saving(function ($model) {
-            $model->created_at=date('Y-m-d H:i:s');
+            $model->created_at = date('Y-m-d H:i:s');
         });
 
-        static::updating( function ( $model ) {
-            $model->updated_at=date('Y-m-d H:i:s');
-        } );
+        static::updating(function ($model) {
+            $model->updated_at = date('Y-m-d H:i:s');
+        });
+    }
+
+    public function invoice_details()
+    {
+        return $this->hasMany(InvoiceDetail::class, 'invoice_id');
     }
 }

@@ -28,7 +28,7 @@ class ProductFactory extends Factory
             'color_id' => Color::inRandomOrder()->first()->id,
             'category_id' => $category->id, 
             'size_id' => $sizeId,
-            'product_no' => $this->faker->unique()->numerify('P######'),
+            'product_no' => $this->faker->unique()->date('YmdHis'),
             'price' => $this->faker->randomFloat(2, 10, 1000),
             'image' => $this->faker->imageUrl(100, 100, 'fashion'),
             'status' => $this->faker->randomElement(['Active', 'Inactive', 'Deleted']),

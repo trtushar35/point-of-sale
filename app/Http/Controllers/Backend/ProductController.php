@@ -76,6 +76,7 @@ class ProductController extends Controller
         $formatedDatas = $datas->map(function ($data, $index) {
             $customData = new \stdClass();
             $customData->index = $index + 1;
+            $customData->product_no = $data->product_no;
             $customData->category_id = $data->category->name;
             $customData->name = $data->name ?? '';
             $customData->size_id = $data->size->size;
@@ -114,6 +115,7 @@ class ProductController extends Controller
     {
         return [
             ['fieldName' => 'index', 'class' => 'text-center'],
+            ['fieldName' => 'product_no', 'class' => 'text-center'],
             ['fieldName' => 'category_id', 'class' => 'text-center'],
             ['fieldName' => 'name', 'class' => 'text-center'],
             ['fieldName' => 'size_id', 'class' => 'text-center'],
@@ -127,6 +129,7 @@ class ProductController extends Controller
     {
         return [
             'Sl/No',
+            'Product Number',
             'Category Name',
             'Product Name',
             'Size',
@@ -140,7 +143,14 @@ class ProductController extends Controller
 
     public function downloadPdf(Request $request)
     {
-        $query = $this->productService->list()->with('color');
+        $from = $request->input('from');
+        $to = $request->input('to');
+
+        $query = $this->productService->activeList();
+        if ($from && $to) {
+            $query->skip($from - 1)->take($to - $from + 1);
+        }
+
         $datas = $query->get();
 
         if ($datas->isEmpty()) {
@@ -150,14 +160,13 @@ class ProductController extends Controller
         $barcodeGenerator = new BarcodeGeneratorPNG();
         foreach ($datas as $data) {
             $data->barcode = 'data:image/png;base64,' . base64_encode(
-                $barcodeGenerator->getBarcode($data->id, $barcodeGenerator::TYPE_CODE_128)
+                $barcodeGenerator->getBarcode($data->product_no, $barcodeGenerator::TYPE_CODE_128)
             );
         }
 
         $pdf = PDF::loadView('pdf.productsPdf', compact('datas'));
         return $pdf->download('products_list.pdf');
     }
-
 
     public function create()
     {
@@ -192,8 +201,6 @@ class ProductController extends Controller
 
             $categoryInventory = $this->inventoryService->getInventoryByCatgegory($dataInfo->category_id);
 
-            // dd($categoryInventory);
-
             if ($categoryInventory) {
                 $categoryInventory->quantity = $categoryInventory->quantity + 1;
                 $categoryInventory->stock_in = $categoryInventory->stock_in + 1;
@@ -204,7 +211,7 @@ class ProductController extends Controller
                     'category_id' => $dataInfo->category_id,
                     'quantity' => 1,
                     'stock_in' => 1,
-                    'sku'=> 1,
+                    'sku' => 1,
                     'status' => 'Active'
                 ];
                 $this->inventoryService->create($inventoryData);

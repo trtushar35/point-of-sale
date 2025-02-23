@@ -85,12 +85,10 @@ class ProductService
         $lastProduct = $this->productModel->whereNotNull('product_no')->orderByDesc('id')->first();
 
         if ($lastProduct === null) {
-            return 'P-1';
+            return 'P-'.date('YmdHis');
         }
-
-        $lastProductNo = $lastProduct->product_no;
-        $lastProductNumber = (int) str_replace('P-', '', $lastProductNo);
-        $nextProductNo = 'P-' . ($lastProductNumber + 1);
+        
+        $nextProductNo = 'P-'.date('YmdHis');
 
         return $nextProductNo;
     }

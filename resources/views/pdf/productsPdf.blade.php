@@ -18,7 +18,7 @@
         }
 
         td {
-            padding: 20px;
+            padding: 5px; 
             text-align: center;
             vertical-align: top;
         }
@@ -29,13 +29,23 @@
             font-size: 12px;
             color: #000;
             line-height: 1.2;
-            height: 60px;
+            height: 68px;
+            border: 1px solid #000;
+            margin: 0; 
         }
 
         .sticker h2 {
             margin: 0;
             font-size: 12px;
             font-weight: bold;
+            display: inline; 
+        }
+        
+        .sticker h1 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline; 
         }
 
         .sticker .price {
@@ -53,6 +63,11 @@
             display: block;
             margin: 0 auto;
         }
+
+        .inline-headers h2 {
+            display: inline; 
+            margin-right: 5px; 
+        }
     </style>
 </head>
 <body>
@@ -62,15 +77,17 @@
         @endphp
 
         @foreach ($datas as $data)
-            @if ($count % 5 == 0)
+            @if ($count % 3 == 0)
                 <tr> 
             @endif
 
             <td>
                 <div class="sticker">
-                    <h2>Metro Men</h2>
-                    <h2>{{ $data->category->name ?? '' }}</h2>
-                    <h2>{{ $data->color->name ?? 'N/A'}} ({{ $data->size->size ?? ''}})</h2>
+                    <h1>Metro Men</h1>
+                    <div class="inline-headers">
+                        <h2>{{ $data->category->name ?? '' }}</h2>
+                        <h2>{{ $data->color->name ?? 'N/A'}} ({{ $data->size->size ?? ''}})</h2>
+                    </div>
                     <div class="barcode">
                         <img src="{{ $data->barcode }}" alt="Barcode">
                     </div>
@@ -82,13 +99,13 @@
                 $count++;
             @endphp
 
-            @if ($count % 5 == 0)
+            @if ($count % 3 == 0)
                 </tr> 
             @endif
         @endforeach
 
-        @if ($count % 5 != 0)
-            @for ($i = 0; $i < (5 - $count % 5); $i++)
+        @if ($count % 3 != 0)
+            @for ($i = 0; $i < (3 - $count % 3); $i++)
                 <td></td>
             @endfor
             </tr>

@@ -74,17 +74,17 @@ class InvoiceController extends Controller
 
     private function getDatas()
     {
-        $query = $this->invoiceDetailsService->list();
+        $query = $this->invoiceService->listWithDetails()->get();
 
         $datas = $query->paginate(request()->numOfData ?? 10)->withQueryString();
         $formatedDatas = $datas->map(function ($data, $index) {
 
             $customData = new \stdClass();
             $customData->index = $index + 1;
-            $customData->invoice_date = date('d M Y H:i A', strtotime($data->invoice->invoice_date));
-            $customData->invoice_no = $data->invoice->id;
-            $customData->product_no = $data->product->product_no;
-            $customData->total = $data->invoice->total_price;
+            $customData->invoice_date = date('d M Y H:i A', strtotime($data->invoice_date));
+            $customData->invoice_no = $data->invoice_id;
+            $customData->total = $data->total_price;
+            $customData->total = $data->total_price;
 
             $customData->status = $data->status ?? "";
             $customData->hasLink = true;

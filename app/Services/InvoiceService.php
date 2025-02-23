@@ -3,14 +3,16 @@
 namespace App\Services;
 
 use App\Models\Invoice;
+use App\Models\InvoiceDetail;
 
 class InvoiceService
 {
-    protected $invoiceModel;
+    protected $invoiceModel, $invoiceDetailsModel;
 
-    public function __construct(Invoice $invoiceModel)
+    public function __construct(Invoice $invoiceModel, InvoiceDetail $invoiceDetailsModel)
     {
         $this->invoiceModel = $invoiceModel;
+        $this->invoiceDetailsModel = $invoiceDetailsModel;
     }
 
     public function list()
@@ -70,6 +72,11 @@ class InvoiceService
 
     public function activeList()
     {
-        return $this->invoiceModel->with('category')->whereNull('deleted_at');
+        return $this->invoiceModel->whereNull('deleted_at')->where('status', 'Active');
+    }
+
+    public function listWithDetails()
+    {
+        return $this->invoiceModel->with('invoice_details')->where('status', 'Active')->whereNull('deleted_at');
     }
 }
