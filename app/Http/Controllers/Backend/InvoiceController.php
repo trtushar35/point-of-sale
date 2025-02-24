@@ -94,23 +94,28 @@ class InvoiceController extends Controller
             $customData->hasLink = true;
             $customData->links = [
 
-                [
-                    'linkClass' => 'semi-bold text-white statusChange ' . (($data->status == 'Active') ? "bg-gray-500" : "bg-green-500"),
-                    'link' => route('backend.invoice.status.change', ['id' => $data->id, 'status' => $data->status == 'Active' ? 'Inactive' : 'Active']),
-                    'linkLabel' => getLinkLabel((($data->status == 'Active') ? "Inactive" : "Active"), null, null)
-                ],
+                // [
+                //     'linkClass' => 'semi-bold text-white statusChange ' . (($data->status == 'Active') ? "bg-gray-500" : "bg-green-500"),
+                //     'link' => route('backend.invoice.status.change', ['id' => $data->id, 'status' => $data->status == 'Active' ? 'Inactive' : 'Active']),
+                //     'linkLabel' => getLinkLabel((($data->status == 'Active') ? "Inactive" : "Active"), null, null)
+                // ],
 
                 [
                     'linkClass' => 'bg-green-600 text-white semi-bold',
                     'link' => route('backend.invoice.show', $data->id),
                     'linkLabel' => getLinkLabel('View', null, null)
                 ],
-
                 [
-                    'linkClass' => 'bg-yellow-400 text-black semi-bold',
-                    'link' => route('backend.invoice.edit', $data->id),
-                    'linkLabel' => getLinkLabel('Edit', null, null)
+                    'linkClass' => 'bg-yellow-600 text-white semi-bold',
+                    'link' => route('backend.invoice.show', $data->id),
+                    'linkLabel' => getLinkLabel('Print', null, null)
                 ],
+
+                // [
+                //     'linkClass' => 'bg-yellow-400 text-black semi-bold',
+                //     'link' => route('backend.invoice.edit', $data->id),
+                //     'linkLabel' => getLinkLabel('Edit', null, null)
+                // ],
 
                 // [
                 //     'linkClass' => 'deleteButton bg-red-500 text-white semi-bold',
@@ -189,5 +194,35 @@ class InvoiceController extends Controller
                 ->back()
                 ->with('errorMessage', 'Server Errors Occur. Please Try Again.');
         }
+    }
+
+    public function show($id)
+    {
+        $invoice = $this->invoiceService->findWithDetails($id);
+
+        $formattedInvoice = [
+            'invoice_no' => $invoice->id,
+            'invoice_date' => date('d M Y H:i A', strtotime($invoice->invoice_date)),
+            'total_price' => $invoice->total_price,
+            'status' => $invoice->status,
+            'products' => $invoice->invoiceDetails->map(function ($detail) {
+                return [
+                    'product_no' => $detail->product->product_no,
+                    'name' => $detail->product->name,
+                    'quantity' => $detail->quantity,
+                    'price' => $detail->price,
+                    'total' => $detail->quantity * $detail->price,
+                ];
+            }),
+        ];
+
+        return Inertia::render(
+            'Backend/Invoice/Preview',
+            [
+                'pageTitle' => fn() => 'Invoice Preview',
+                'invoice' => $formattedInvoice,
+            ],
+
+        );
     }
 }

@@ -82,12 +82,6 @@ const applyFilter = () => {
 
                 </div>
 
-                <div class="flex justify-end">
-                    <button @click="downloadPdf" class="bg-green-500 text-white px-3 rounded-md">
-                        PDF
-                    </button>
-                </div>
-
                 <div class="hidden min-w-24 md:block">
                     <select v-model="filters.numOfData" @change="applyFilter"
                         class="w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600">

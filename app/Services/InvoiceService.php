@@ -79,4 +79,9 @@ class InvoiceService
     {
         return $this->invoiceModel->with('invoiceDetails', 'invoiceDetails.product')->where('status', 'Active')->whereNull('deleted_at');
     }
+
+    public function findWithDetails($id)
+    {
+        return Invoice::with(['invoiceDetails.product'])->find($id);
+    }
 }
