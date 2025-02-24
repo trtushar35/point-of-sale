@@ -43,6 +43,12 @@ const fetchProductDetails = async (productNo) => {
         form.price = '';
         form.total_price = '';
         form.category_id = '';
+
+        popupMessage.value = 'Product is not available. Please check the product number and try again.';
+        popupType.value = 'error';
+        showPopup.value = true;
+        setTimeout(() => showPopup.value = false, 2000);
+        console.error("Error fetching product details:", error);
     }
 };
 

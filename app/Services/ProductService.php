@@ -95,6 +95,6 @@ class ProductService
 
     public function getByProductNumber($productNo)
     {
-        return $this->productModel->with('color', 'category', 'size')->where('product_no', $productNo)->first();
+        return $this->productModel->with('color', 'category', 'size')->where('product_no', $productNo)->where('status', 'Active')->whereNull('deleted_at')->first();
     }
 }

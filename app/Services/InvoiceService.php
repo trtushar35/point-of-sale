@@ -77,6 +77,6 @@ class InvoiceService
 
     public function listWithDetails()
     {
-        return $this->invoiceModel->with('invoice_details')->where('status', 'Active')->whereNull('deleted_at');
+        return $this->invoiceModel->with('invoiceDetails', 'invoiceDetails.product')->where('status', 'Active')->whereNull('deleted_at');
     }
 }

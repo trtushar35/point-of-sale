@@ -23,7 +23,7 @@ class Invoice extends Model
         });
     }
 
-    public function invoice_details()
+    public function invoiceDetails()
     {
         return $this->hasMany(InvoiceDetail::class, 'invoice_id');
     }

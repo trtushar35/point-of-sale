@@ -74,7 +74,7 @@ class InvoiceController extends Controller
 
     private function getDatas()
     {
-        $query = $this->invoiceService->listWithDetails()->get();
+        $query = $this->invoiceService->listWithDetails();
 
         $datas = $query->paginate(request()->numOfData ?? 10)->withQueryString();
         $formatedDatas = $datas->map(function ($data, $index) {
@@ -82,7 +82,11 @@ class InvoiceController extends Controller
             $customData = new \stdClass();
             $customData->index = $index + 1;
             $customData->invoice_date = date('d M Y H:i A', strtotime($data->invoice_date));
-            $customData->invoice_no = $data->invoice_id;
+            $customData->invoice_no = $data->invoiceDetails->first()->invoice_id;
+
+            $productNos = $data->invoiceDetails->pluck('product.product_no')->toArray();
+            $customData->product_no = $productNos;
+
             $customData->total = $data->total_price;
             $customData->total = $data->total_price;
 
@@ -155,7 +159,7 @@ class InvoiceController extends Controller
             $data = $request->validated();
 
             $invoiceData = [
-                'invoice_date' => now(), 
+                'invoice_date' => now(),
                 'total_price' => $data['total_price']
             ];
             $invoiceInformation = $this->invoiceService->create($invoiceData);
@@ -165,12 +169,12 @@ class InvoiceController extends Controller
                 $productDetails = $this->productService->getByProductNumber($product['product_no']);
 
                 $invoiceDetailsData = [
-                    'invoice_id' => $invoiceInformation->id, 
+                    'invoice_id' => $invoiceInformation->id,
                     'product_id' => $productDetails->id,
                     'price' => $product['price'],
                     'quantity' => $product['quantity']
                 ];
-                $this->invoiceDetailsService->create($invoiceDetailsData); 
+                $this->invoiceDetailsService->create($invoiceDetailsData);
             }
 
             DB::commit();

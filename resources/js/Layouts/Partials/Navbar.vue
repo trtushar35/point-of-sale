@@ -17,7 +17,7 @@ const toggleSidebar = () => {
 };
 
 const logout = () => {
-    router.post(route('logout'));
+    window.open(route("backend.auth.logout"));
 };
 </script>
 
@@ -89,12 +89,6 @@ const logout = () => {
 
                                         <DropdownLink :href="route('profile.show')">
                                             Profile </DropdownLink>
-
-
-                                        <DropdownLink :href="route('profile.show')">
-                                            Profile
-                                        </DropdownLink>
-
 
                                         <div class="border-t border-gray-200" />
 
