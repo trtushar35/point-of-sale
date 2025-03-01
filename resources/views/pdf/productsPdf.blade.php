@@ -30,7 +30,7 @@
             color: #000;
             line-height: 1.2;
             height: 68px;
-            border: 1px solid #000;
+            /* border: 1px solid #000; */
             margin: 0; 
         }
 
@@ -59,7 +59,7 @@
         }
 
         img {
-            height: 20px;
+            height: 20px; /* Adjust this value to make the barcode smaller */
             display: block;
             margin: 0 auto;
         }
@@ -77,7 +77,7 @@
         @endphp
 
         @foreach ($datas as $data)
-            @if ($count % 3 == 0)
+            @if ($count % 4 == 0)
                 <tr> 
             @endif
 
@@ -99,13 +99,13 @@
                 $count++;
             @endphp
 
-            @if ($count % 3 == 0)
+            @if ($count % 4 == 0)
                 </tr> 
             @endif
         @endforeach
 
         @if ($count % 3 != 0)
-            @for ($i = 0; $i < (3 - $count % 3); $i++)
+            @for ($i = 0; $i < (4 - $count % 4); $i++)
                 <td></td>
             @endfor
             </tr>

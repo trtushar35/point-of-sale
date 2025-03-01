@@ -159,15 +159,13 @@ class ProductController extends Controller
 
         $barcodeGenerator = new BarcodeGeneratorPNG();
         foreach ($datas as $data) {
-            $data->barcode = 'data:image/png;base64,' . base64_encode(
-                $barcodeGenerator->getBarcode($data->product_no, $barcodeGenerator::TYPE_CODE_128)
-            );
+            $barcodeImage = $barcodeGenerator->getBarcode($data->price."-".$data->size->size, $barcodeGenerator::TYPE_CODE_128, 2, 40);
+            $data->barcode = 'data:image/png;base64,' . base64_encode($barcodeImage);
         }
 
         $pdf = PDF::loadView('pdf.productsPdf', compact('datas'));
-        return $pdf->download('products_list.pdf');
+        return $pdf->stream('products_list.pdf');
     }
-
     public function create()
     {
         return Inertia::render(
