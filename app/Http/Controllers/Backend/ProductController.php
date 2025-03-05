@@ -54,7 +54,8 @@ class ProductController extends Controller
 
     private function getDatas()
     {
-        $query = $this->productService->activeList();
+        $userId = auth('admin')->user()->id;
+        $query = $this->productService->userWiseList($userId);
 
         if (request()->filled('category_id'))
             $query->where('category_id', request()->category_id);
@@ -191,6 +192,7 @@ class ProductController extends Controller
             $data = $request->validated();
 
             $data['product_no'] = $this->productService->generateProductNo();
+            $data['author_id'] = auth('admin')->user()->id;
 
             if ($request->hasFile('image'))
                 $data['image'] = $this->imageUpload($request->file('image'), 'products');

@@ -57,7 +57,7 @@ class Admin extends Authenticatable
     }
     public function getPhotoAttribute($value)
     {
-        return (!is_null($value)) ? env('APP_URL') . '/public/storage/' . $value : null;
+        return (!is_null($value)) ? env('APP_URL') . '/storage/' . $value : null;
     }
     public function setPasswordAttribute($password)
     {

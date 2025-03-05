@@ -79,16 +79,21 @@ class ProductService
     {
         return $this->productModel->with('category', 'size', 'color')->whereNull('deleted_at')->where('status', 'Active');
     }
+    
+    public function userWiseList($userId)
+    {
+        return $this->productModel->with('category', 'size', 'color')->where('author_id', $userId)->whereNull('deleted_at')->where('status', 'Active');
+    }
 
     public function generateProductNo()
     {
         $lastProduct = $this->productModel->whereNotNull('product_no')->orderByDesc('id')->first();
 
         if ($lastProduct === null) {
-            return 'P-'.date('YmdHis');
+            return 'P'.date('YmdHis');
         }
         
-        $nextProductNo = 'P-'.date('YmdHis');
+        $nextProductNo = 'P'.date('YmdHis');
 
         return $nextProductNo;
     }
