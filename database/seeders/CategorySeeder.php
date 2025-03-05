@@ -16,13 +16,12 @@ class CategorySeeder extends Seeder
     public function run()
     {
         $categories = [
-            'Shirt' => ['S', 'M', 'L', 'XL'],
-            'Pant' => ['30', '32', '34'],
-            'Jeans' => ['30', '32', '34', '36'],
-            'T-Shirt' => ['S', 'M', 'L', 'XL'],
-            'Polo' => ['S', 'M', 'L', 'XL'],
-            'Full Sleeve Shirt' => ['S', 'M', 'L', 'XL'],
-            'Half Sleeve Shirt' => ['S', 'M', 'L', 'XL'],
+            'Shirt' => ['S', 'M', 'L', 'XL', 'XXL', '3XL'],
+            'Jeans' => ['28', '29', '30', '31', '32', '33','34', '35', '36', '37', '38'],
+            'T-Shirt' => ['S', 'M', 'L', 'XL', 'XXL', '3XL'],
+            'Polo' => ['S', 'M', 'L', 'XL', 'XXL', '3XL'],
+            'Full Shirt' => ['S', 'M', 'L', 'XL', 'XXL', '3XL'],
+            'Half Shirt' => ['S', 'M', 'L', 'XL', 'XXL', '3XL'],
         ];
 
         foreach ($categories as $categoryName => $sizes) {
