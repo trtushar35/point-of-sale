@@ -22,6 +22,12 @@ class InventoryController extends Controller
     {
         $this->inventoryService = $inventoryService;
         $this->categoryService = $categoryService;
+
+        $this->middleware('auth:admin');
+        $this->middleware('permission:inventory-add', ['only' => ['create|store']]);
+        $this->middleware('permission:inventory-edit', ['only' => ['edit|update']]);
+        $this->middleware('permission:inventory-list', ['only' => ['index']]);
+        $this->middleware('permission:inventory-delete', ['only' => ['destroy']]);
     }
 
     public function index()

@@ -22,6 +22,12 @@ class AdminController extends Controller
     {
         $this->adminService = $adminService;
         $this->roleService = $roleService;
+
+        $this->middleware('auth:admin');
+        $this->middleware('permission:admin-add', ['only' => ['create|store']]);
+        $this->middleware('permission:admin-edit', ['only' => ['edit|update']]);
+        $this->middleware('permission:admin-list', ['only' => ['index']]);
+        $this->middleware('permission:admin-delete', ['only' => ['destroy']]);
     }
 
     public function index()

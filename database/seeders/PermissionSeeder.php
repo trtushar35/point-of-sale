@@ -1,8 +1,10 @@
 <?php
-
 namespace Database\Seeders;
 
-use App\Models\Permission;
+use App\Models\Menu;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Models\Permission;
+
 use Illuminate\Database\Seeder;
 
 class PermissionSeeder extends Seeder
@@ -12,96 +14,42 @@ class PermissionSeeder extends Seeder
      *
      * @return void
      */
-
     public function run()
     {
-        foreach ($this->datas() as $key => $value) {
-            $this->createPermission($value);
+        // Seed permissions from predefined data
+        //foreach ($this->datas() as $value) {
+        //    $this->createPermission($value);
+        //}
+
+        // Seed permissions from the menu
+        $this->menuPermission();
+    }
+
+
+
+    private function menuPermission()
+    {
+        foreach (Menu::with('childrens')->whereNull('parent_id')->get() as $menu) {
+            $this->createPermissionFromMenu($menu);
         }
     }
 
-    private function createPermission($data, $parent_id = null)
+    private function createPermissionFromMenu($menu, $parent_id = null)
     {
         $permission = new Permission([
-            'name' => $data['name'],
-            'guard_name' => 'admin', // Assuming you have 'admin' guard
+            'name' => $menu->permission_name,
+            'guard_name' => 'admin',
             'parent_id' => $parent_id,
             'created_at' => now(),
         ]);
 
         $permission->save();
 
-        if (isset($data['children']) && is_array($data['children'])) {
-            foreach ($data['children'] as $child) {
-                $this->createPermission($child, $permission->id);
-            }
+        foreach ($menu->childrens as $child) {
+            $this->createPermissionFromMenu($child, $permission->id);
         }
     }
 
-    private function datas()
-    {
-        return [
-            [
-                'name' => 'dashboard',
-            ],
-            [
-                'name' => 'permission-management',
-                'children' => [
-                    [
-                        'name' => 'permission-add',
-                        'children' => [
-                            ['name' => 'permission-create']
-                        ]
-                    ],
-                    [
-                        'name' => 'permission-list',
-                        'children' => [
-                            ['name' => 'permission-edit'],
-                            ['name' => 'permission-update'],
-                            ['name' => 'permission-delete']
-                        ]
-                    ],
-                ],
-            ],
-            [
-                'name' => 'role-management',
-                'children' => [
-                    [
-                        'name' => 'role-add',
-                        'children' => [
-                            ['name' => 'role-create']
-                        ]
-                    ],
-                    [
-                        'name' => 'role-list',
-                        'children' => [
-                            ['name' => 'role-edit'],
-                            ['name' => 'role-update'],
-                            ['name' => 'role-delete']
-                        ]
-                    ],
-                ],
-            ],
-            [
-                'name' => 'user-management',
-                'children' => [
-                    [
-                        'name' => 'user-add',
-                        'children' => [
-                            ['name' => 'user-create']
-                        ]
-                    ],
-                    [
-                        'name' => 'user-list',
-                        'children' => [
-                            ['name' => 'user-status-change'],
-                            ['name' => 'user-edit'],
-                            ['name' => 'user-update'],
-                            ['name' => 'user-delete']
-                        ]
-                    ],
-                ],
-            ],
-        ];
-    }
+   
+    
 }

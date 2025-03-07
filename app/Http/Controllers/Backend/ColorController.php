@@ -20,6 +20,12 @@ class ColorController extends Controller
     public function __construct(ColorService $colorService)
     {
         $this->colorService = $colorService;
+
+        $this->middleware('auth:admin');
+        $this->middleware('permission:color-add', ['only' => ['create|store']]);
+        $this->middleware('permission:color-edit', ['only' => ['edit|update']]);
+        $this->middleware('permission:color-list', ['only' => ['index']]);
+        $this->middleware('permission:color-delete', ['only' => ['destroy']]);
     }
 
     public function index()
