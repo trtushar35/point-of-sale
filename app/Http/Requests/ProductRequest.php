@@ -16,7 +16,7 @@ class ProductRequest extends FormRequest
         switch ($this->method()) {
             case 'POST':
                 return [
-                    'name' => 'required',
+                    'name' => 'nullable',
                     'color_id' => 'nullable',
                     'size_id' => 'required',
                     'category_id' => 'required',
@@ -27,7 +27,7 @@ class ProductRequest extends FormRequest
 
             case 'PUT':
                 return [
-                    'name' => 'required',
+                    'name' => 'nullable',
                     'color_id' => 'nullable',
                     'size_id' => 'required',
                     'category_id' => 'required',
