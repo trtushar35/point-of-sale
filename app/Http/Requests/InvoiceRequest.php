@@ -18,7 +18,7 @@ class InvoiceRequest extends FormRequest
                 return [
                     'products' => 'required|array',
                     'products.*.product_no' => 'required|string',
-                    'products.*.name' => 'required|string',
+                    'products.*.name' => 'nullable|string',
                     'products.*.color' => 'required|integer',
                     'products.*.size' => 'required|integer',
                     'products.*.category' => 'required|integer',
@@ -32,7 +32,7 @@ class InvoiceRequest extends FormRequest
                 return [
                     'products' => 'required|array',
                     'products.*.product_no' => 'required|string',
-                    'products.*.name' => 'required|string',
+                    'products.*.name' => 'nullable|string',
                     'products.*.color' => 'required|integer',
                     'products.*.size' => 'required|integer',
                     'products.*.category' => 'required|integer',

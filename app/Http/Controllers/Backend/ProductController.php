@@ -324,13 +324,11 @@ class ProductController extends Controller
         DB::beginTransaction();
 
         try {
-            // Attempt to delete the product through your service
             $deletionSuccess = $this->productService->delete($id);
 
             if ($deletionSuccess) {
                 $message = 'Product deleted successfully';
 
-                // Log the successful deletion (assuming your logging method works)
                 $this->storeAdminWorkLog($id, 'products', $message);
 
                 DB::commit();
