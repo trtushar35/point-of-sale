@@ -22,7 +22,8 @@ class ColorController extends Controller
         $this->colorService = $colorService;
 
         $this->middleware('auth:admin');
-        $this->middleware('permission:color-add', ['only' => ['create|store']]);
+        $this->middleware('permission:color-add', ['only' => ['create']]);
+        $this->middleware('permission:color-add', ['only' => ['store']]);
         $this->middleware('permission:color-edit', ['only' => ['edit|update']]);
         $this->middleware('permission:color-list', ['only' => ['index']]);
         $this->middleware('permission:color-delete', ['only' => ['destroy']]);

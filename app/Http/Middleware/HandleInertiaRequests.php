@@ -35,9 +35,9 @@ class HandleInertiaRequests extends Middleware
         $sideMenus = [];
         $companyInfo = [];
         if (auth()->guard('admin')->check() && auth()->guard('admin')->user()->status == 'Active') {
-            $sideMenus = (session()->has('sideMenus')) ? session()->get('sideMenus') : getSideMenus();
+            $sideMenus = (session()->has('sideMenus')) ? session()->get('sideMenus') : getSideMenus(auth()->guard('admin')->user());
         }
-        $sideMenus = (session()->has('sideMenus')) ? session()->get('sideMenus') : getSideMenus();
+        $sideMenus = (session()->has('sideMenus')) ? session()->get('sideMenus') : getSideMenus(auth()->guard('admin')->user());
 
         $companyInfo = (session()->has('companyInfo')) ? session()->get('companyInfo') : Company::first();
 

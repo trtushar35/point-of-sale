@@ -7,16 +7,15 @@ import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import AlertMessage from '@/Components/AlertMessage.vue';
 import { displayResponse, displayWarning } from '@/responseMessage.js';
-import Multiselect from 'vue-multiselect';
 
 const props = defineProps(['product', 'id', 'roles', 'colors', 'categories', 'sizes']);
 
 // Form setup
 const form = useForm({
     name: props.product?.name ?? '',
-    color_id: props.product?.colors?.map(color => color.id) ?? [],
+    color_id: props.product?.color_id ?? '',
     category_id: props.product?.category_id ?? '',
-    size_id: props.product?.sizes?.map(size => size.id) ?? [],
+    size_id: props.product?.size_id ?? '',
     price: props.product?.price ?? '',
     image: '',
     photoPreview: props.product?.image ?? '',
@@ -28,21 +27,27 @@ const availableSizes = ref([]);
 const fetchCategoryWiseSize = async () => {
     const categoryId = form.category_id;
 
+    console.log('categoryId:', categoryId);
+
     if (!categoryId) {
-        form.size_id = [];
-        availableSizes.value = [];
+        form.size_id = '';  
+        availableSizes.value = [];  
         return;
     }
 
     try {
         const response = await axios.get(route("backend.product.categoryWiseSize", categoryId));
 
+        console.log('response:', response);
+
         if (response.data && Array.isArray(response.data)) {
             availableSizes.value = response.data;
 
-            form.size_id = form.size_id.filter(sizeId =>
-                availableSizes.value.some(size => size.id === sizeId)
-            );
+            console.log('availableSizes:', availableSizes.value);
+
+            if (form.size_id && !availableSizes.value.some(size => size.id === form.size_id)) {
+                form.size_id = '';  
+            }
         }
     } catch (error) {
         console.error("Error fetching sizes:", error);
@@ -54,7 +59,7 @@ watch(() => form.category_id, fetchCategoryWiseSize);
 
 onMounted(() => {
     if (form.category_id) {
-        fetchCategoryWiseSize();
+        fetchCategoryWiseSize(); 
     }
 });
 
@@ -70,15 +75,9 @@ const handleImageChange = (event) => {
 };
 
 const submit = () => {
-    const formattedColors = form.color_id.map(color => color.id || color);
-    const formattedSizes = form.size_id.map(size => size.id || size);
-
     const routeName = props.id ? route('backend.product.update', props.id) : route('backend.product.store');
-
     form.transform(data => ({
         ...data,
-        color_id: formattedColors,
-        size_id: formattedSizes,
         remember: '',
         isDirty: false,
     })).post(routeName, {
@@ -95,10 +94,8 @@ const submit = () => {
 
 <template>
     <BackendLayout>
-        <div
-            class="w-full mt-3 transition duration-1000 ease-in-out transform bg-white border border-gray-700 rounded-md shadow-lg shadow-gray-800/50 dark:bg-slate-900">
-            <div
-                class="flex items-center justify-between w-full text-gray-700 bg-gray-100 rounded-md shadow-md dark:bg-gray-800 dark:text-gray-200 shadow-gray-800/50">
+        <div class="w-full mt-3 transition duration-1000 ease-in-out transform bg-white border border-gray-700 rounded-md shadow-lg shadow-gray-800/50 dark:bg-slate-900">
+            <div class="flex items-center justify-between w-full text-gray-700 bg-gray-100 rounded-md shadow-md dark:bg-gray-800 dark:text-gray-200 shadow-gray-800/50">
                 <div>
                     <h1 class="p-4 text-xl font-bold dark:text-white">{{ $page.props.pageTitle }}</h1>
                 </div>
@@ -118,6 +115,18 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.name" />
                     </div>
 
+                    <!-- Color Dropdown -->
+                    <div class="col-span-1 md:col-span-1">
+                        <InputLabel for="color" value="Color" />
+                        <select id="color"
+                            class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
+                            v-model="form.color_id">
+                            <option value="">Select Color</option>
+                            <option v-for="color in colors" :key="color.id" :value="color.id">{{ color.name }}</option>
+                        </select>
+                        <InputError class="mt-2" :message="form.errors.color" />
+                    </div>
+
                     <!-- Category Dropdown -->
                     <div class="col-span-1 md:col-span-1">
                         <InputLabel for="category_id" value="Category" />
@@ -125,8 +134,7 @@ const submit = () => {
                             class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
                             v-model="form.category_id">
                             <option value="">Select Category</option>
-                            <option v-for="category in categories" :key="category.id" :value="category.id">{{
-                                category.name }}</option>
+                            <option v-for="category in categories" :key="category.id" :value="category.id">{{ category.name }}</option>
                         </select>
                         <InputError class="mt-2" :message="form.errors.category_id" />
                     </div>
@@ -134,17 +142,13 @@ const submit = () => {
                     <!-- Size Field -->
                     <div class="col-span-1 md:col-span-1">
                         <InputLabel for="size_id" value="Size" />
-                        <Multiselect v-model="form.size_id" :options="availableSizes" :multiple="true"
-                            :close-on-select="false" placeholder="Select Sizes" label="size" track-by="id" />
+                        <select id="size_id"
+                            class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
+                            v-model="form.size_id">
+                            <option value="">Select Size</option>
+                            <option v-for="size in availableSizes" :key="size.id" :value="size.id">{{ size.size }}</option>
+                        </select>
                         <InputError class="mt-2" :message="form.errors.size_id" />
-                    </div>
-
-                    <!-- Color Dropdown -->
-                    <div class="col-span-1 md:col-span-1">
-                        <InputLabel for="color" value="Color" />
-                        <Multiselect v-model="form.color_id" :options="colors" :multiple="true" :close-on-select="false"
-                            placeholder="Select Colors" label="name" track-by="id" />
-                        <InputError class="mt-2" :message="form.errors.color_id" />
                     </div>
 
                     <!-- Price Field -->
@@ -160,8 +164,7 @@ const submit = () => {
                     <div class="col-span-1 md:col-span-2">
                         <InputLabel for="image" value="Image" />
                         <div v-if="form.photoPreview">
-                            <img :src="form.photoPreview" alt="Photo Preview" class="max-w-xs mt-2" height="60"
-                                width="60" />
+                            <img :src="form.photoPreview" alt="Photo Preview" class="max-w-xs mt-2" height="60" width="60" />
                         </div>
                         <input id="image" type="file" accept="image/*"
                             class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
@@ -182,5 +185,3 @@ const submit = () => {
         </div>
     </BackendLayout>
 </template>
-
-<style src="vue-multiselect/dist/vue-multiselect.css"></style>

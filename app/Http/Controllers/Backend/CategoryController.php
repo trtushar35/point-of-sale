@@ -21,7 +21,8 @@ class CategoryController extends Controller
         $this->categoryService = $categoryService;
 
         $this->middleware('auth:admin');
-        $this->middleware('permission:category-add', ['only' => ['create|store']]);
+        $this->middleware('permission:category-add', ['only' => ['create']]);
+        $this->middleware('permission:category-add', ['only' => ['store']]);
         $this->middleware('permission:category-edit', ['only' => ['edit|update']]);
         $this->middleware('permission:category-list', ['only' => ['index']]);
         $this->middleware('permission:category-delete', ['only' => ['destroy']]);

@@ -24,7 +24,8 @@ class SizeController extends Controller
         $this->categoryService = $categoryService;
 
         $this->middleware('auth:admin');
-        $this->middleware('permission:size-add', ['only' => ['create|store']]);
+        $this->middleware('permission:size-add', ['only' => ['create']]);
+        $this->middleware('permission:size-add', ['only' => ['store']]);
         $this->middleware('permission:size-edit', ['only' => ['edit|update']]);
         $this->middleware('permission:size-list', ['only' => ['index']]);
         $this->middleware('permission:size-delete', ['only' => ['destroy']]);

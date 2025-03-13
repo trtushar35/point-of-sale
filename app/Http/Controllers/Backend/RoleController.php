@@ -27,7 +27,8 @@ class RoleController extends Controller
         $this->AdminService = $AdminService;
 
         $this->middleware('auth:admin');
-        $this->middleware('permission:role-add', ['only' => ['create|store']]);
+        $this->middleware('permission:role-add', ['only' => ['create']]);
+        $this->middleware('permission:role-add', ['only' => ['store']]);
         $this->middleware('permission:role-edit', ['only' => ['edit|update']]);
         $this->middleware('permission:role-list', ['only' => ['index']]);
         $this->middleware('permission:role-delete', ['only' => ['destroy']]);

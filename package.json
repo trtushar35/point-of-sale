@@ -29,7 +29,8 @@
     "mitt": "^3.0.1",
     "sweetalert2": "^11.6.13",
     "toastr": "^2.1.4",
-    "vue-chartjs": "^5.3.0"
+    "vue-chartjs": "^5.3.0",
+    "vue-multiselect": "^3.2.0"
   },
   "name": "base-laravel-inertiajs",
   "description": "<p align=\"center\"><a href=\"https://laravel.com\" target=\"_blank\"><img src=\"https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg\" width=\"400\" alt=\"Laravel Logo\"></a></p>",

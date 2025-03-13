@@ -31,7 +31,8 @@ class InvoiceController extends Controller
         $this->invoiceDetailsService = $invoiceDetailsService;
 
         $this->middleware('auth:admin');
-        $this->middleware('permission:invoice-add', ['only' => ['create|store']]);
+        $this->middleware('permission:invoice-add', ['only' => ['create']]);
+        $this->middleware('permission:invoice-add', ['only' => ['store']]);
         $this->middleware('permission:invoice-edit', ['only' => ['edit|update']]);
         $this->middleware('permission:invoice-list', ['only' => ['index']]);
         $this->middleware('permission:invoice-delete', ['only' => ['destroy']]);

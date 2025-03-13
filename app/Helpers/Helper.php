@@ -229,15 +229,34 @@ function imageNotFound()
     return asset('/app-assets/images/no-image.png');
 }
 
-function getSideMenus()
+function getSideMenus($user)
 {
-    return Menu::with('childrens')
-        ->whereNull('deleted_at')
-        ->where('status', 'Active')
-        ->whereNull('parent_id')
-        ->orderBy('sorting', 'asc')
-        ->selectRaw('id,name,icon,route,permission_name')
-        ->get();
+    if ($user) {
+        $menus = Menu::with('childrens')
+            ->whereNull('deleted_at')
+            ->where('status', 'Active')
+            ->whereNull(columns: 'parent_id')
+            ->orderBy('sorting', 'ASC')
+            ->whereNull(columns: 'parent_id')
+            // ->orderBy('sorting', direction: 'ASC')
+            ->groupBy('permission_name')
+            ->selectRaw('id, name, icon, route, permission_name')
+            ->get();
+
+        $filteredMenus = $menus->filter(function ($menu) use ($user) {
+            return $user->can($menu->permission_name);
+        });
+
+        foreach ($filteredMenus as $menu) {
+            $menu->childrens = $menu->childrens->filter(function ($child) use ($user) {
+                return $user->can($child->permission_name);
+            });
+        }
+
+        return $filteredMenus->values();
+    } else {
+        return [];
+    }
 }
 
 

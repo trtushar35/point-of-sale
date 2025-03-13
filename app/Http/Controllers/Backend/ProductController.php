@@ -33,7 +33,7 @@ class ProductController extends Controller
         $this->inventoryService = $inventoryService;
 
         $this->middleware('auth:admin');
-        $this->middleware('permission:product-add', ['only' => ['create|store']]);
+        $this->middleware('permission:product-add', ['only' => ['create', 'store']]);
         $this->middleware('permission:product-edit', ['only' => ['edit|update']]);
         $this->middleware('permission:product-list', ['only' => ['index']]);
         $this->middleware('permission:product-delete', ['only' => ['destroy']]);
@@ -166,13 +166,14 @@ class ProductController extends Controller
 
         $barcodeGenerator = new BarcodeGeneratorPNG();
         foreach ($datas as $data) {
-            $barcodeImage = $barcodeGenerator->getBarcode($data->price."-".$data->size->size, $barcodeGenerator::TYPE_CODE_128, 2, 40);
+            $barcodeImage = $barcodeGenerator->getBarcode($data->price . "-" . $data->size->size, $barcodeGenerator::TYPE_CODE_128, 2, 40);
             $data->barcode = 'data:image/png;base64,' . base64_encode($barcodeImage);
         }
 
         $pdf = PDF::loadView('pdf.productsPdf', compact('datas'));
         return $pdf->stream('products_list.pdf');
     }
+    
     public function create()
     {
         return Inertia::render(
@@ -194,60 +195,113 @@ class ProductController extends Controller
     {
         DB::beginTransaction();
         try {
-
             $data = $request->validated();
-
-            $data['product_no'] = $this->productService->generateProductNo();
             $data['author_id'] = auth('admin')->user()->id;
 
-            if ($request->hasFile('image'))
+            if ($request->hasFile('image')) {
                 $data['image'] = $this->imageUpload($request->file('image'), 'products');
-
-            $dataInfo = $this->productService->create($data);
-
-            $categoryInventory = $this->inventoryService->getInventoryByCatgegory($dataInfo->category_id);
-
-            if ($categoryInventory) {
-                $categoryInventory->quantity = $categoryInventory->quantity + 1;
-                $categoryInventory->stock_in = $categoryInventory->stock_in + 1;
-                $categoryInventory->sku = $categoryInventory->sku + 1;
-                $categoryInventory->save();
-            } else {
-                $inventoryData = [
-                    'category_id' => $dataInfo->category_id,
-                    'quantity' => 1,
-                    'stock_in' => 1,
-                    'sku' => 1,
-                    'status' => 'Active'
-                ];
-                $this->inventoryService->create($inventoryData);
             }
 
-            if ($dataInfo) {
-                $message = 'Product created successfully';
-                $this->storeAdminWorkLog($dataInfo->id, 'products', $message);
+            $sizes = is_array($request->size_id) ? $request->size_id : ($request->size_id ? [$request->size_id] : []);
+            $colors = is_array($request->color_id) ? $request->color_id : ($request->color_id ? [$request->color_id] : []);
 
-                DB::commit();
+            // If no colors are selected, store only sizes
+            if (empty($colors)) {
+                foreach ($sizes as $size) {
+                    $uniqueProductNo = $this->productService->generateProductNo();
 
-                return redirect()
-                    ->back()
-                    ->with('successMessage', $message);
-            } else {
-                DB::rollBack();
+                    $product = $this->productService->create([
+                        'name' => $data['name'],
+                        'author_id' => $data['author_id'],
+                        'category_id' => $data['category_id'],
+                        'color_id' => null,
+                        'size_id' => $size,
+                        'price' => $data['price'],
+                        'image' => $data['image'] ?? null,
+                        'product_no' => $uniqueProductNo,
+                        'status' => $data['status'] ?? 'Active',
+                    ]);
 
-                $message = "Failed To create product.";
-                return redirect()
-                    ->back()
-                    ->with('errorMessage', $message);
+                    $this->updateOrCreateInventory($data['category_id']);
+
+                    $this->storeAdminWorkLog($product->id, 'products', 'Product created successfully');
+                }
             }
+            // If no sizes are selected, store only colors
+            elseif (empty($sizes)) {
+                foreach ($colors as $color) {
+                    $uniqueProductNo = $this->productService->generateProductNo();
+
+                    $product = $this->productService->create([
+                        'name' => $data['name'],
+                        'author_id' => $data['author_id'],
+                        'category_id' => $data['category_id'],
+                        'color_id' => $color,
+                        'size_id' => null, 
+                        'price' => $data['price'],
+                        'image' => $data['image'] ?? null,
+                        'product_no' => $uniqueProductNo,
+                        'status' => $data['status'] ?? 'Active',
+                    ]);
+
+                    // Update or create inventory
+                    $this->updateOrCreateInventory($data['category_id']);
+
+                    $this->storeAdminWorkLog($product->id, 'products', 'Product created successfully');
+                }
+            }
+            // If both colors and sizes are selected, store combinations
+            else {
+                foreach ($sizes as $size) {
+                    foreach ($colors as $color) {
+                        $uniqueProductNo = $this->productService->generateProductNo();
+
+                        $product = $this->productService->create([
+                            'name' => $data['name'],
+                            'author_id' => $data['author_id'],
+                            'category_id' => $data['category_id'],
+                            'color_id' => $color,
+                            'size_id' => $size,
+                            'price' => $data['price'],
+                            'image' => $data['image'] ?? null,
+                            'product_no' => $uniqueProductNo,
+                            'status' => $data['status'] ?? 'Active',
+                        ]);
+
+                        // Update or create inventory
+                        $this->updateOrCreateInventory($data['category_id']);
+
+                        // Log admin action
+                        $this->storeAdminWorkLog($product->id, 'products', 'Product created successfully');
+                    }
+                }
+            }
+
+            DB::commit();
+            return redirect()->back()->with('successMessage', 'Product(s) created successfully');
         } catch (Exception $err) {
             DB::rollBack();
             $this->storeSystemError('Backend', 'ProductController', 'store', substr($err->getMessage(), 0, 1000));
-            DB::commit();
-            $message = "Server Errors Occur. Please Try Again.";
-            return redirect()
-                ->back()
-                ->with('errorMessage', $message);
+            return redirect()->back()->with('errorMessage', 'Server error occurred. Please try again.');
+        }
+    }
+
+    private function updateOrCreateInventory($categoryId)
+    {
+        $categoryInventory = $this->inventoryService->getInventoryByCategory($categoryId);
+
+        if ($categoryInventory) {
+            $categoryInventory->increment('quantity');
+            $categoryInventory->increment('stock_in');
+            $categoryInventory->increment('sku');
+        } else {
+            $this->inventoryService->create([
+                'category_id' => $categoryId,
+                'quantity' => 1,
+                'stock_in' => 1,
+                'sku' => 1,
+                'status' => 'Active',
+            ]);
         }
     }
 
@@ -256,7 +310,7 @@ class ProductController extends Controller
         $product = $this->productService->find($id);
 
         return Inertia::render(
-            'Backend/Product/Form',
+            'Backend/Product/EditForm',
             [
                 'pageTitle' => fn() => 'Product Edit',
                 'breadcrumbs' => fn() => [

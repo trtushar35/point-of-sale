@@ -73,7 +73,7 @@ class InventoryService
         return $this->inventoryModel->with('category')->whereNull('deleted_at');
     }
 
-    public function getInventoryByCatgegory($categoryId)
+    public function getInventoryByCategory($categoryId)
     {
         return $this->inventoryModel->where('category_id', $categoryId)->whereNull('deleted_at')->first();
     }

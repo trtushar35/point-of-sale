@@ -19,10 +19,10 @@ class AdminRequest extends FormRequest
                     'first_name' => 'required|string|max:255',
                     'last_name' => 'required|string|max:255',
                     'email' => 'required|email|unique:admins,email|max:255',
-                    'photo' => 'file|mimes:png,jpg,jpeg|max:25048',
+                    'photo' => 'nullable|file|mimes:png,jpg,jpeg|max:25048',
                     'phone' => 'nullable|string|max:20',
                     'role_id' => 'required|exists:roles,id',
-                    'password' => 'required|string|min:8',
+                    'password' => 'required|string|min:6',
                     'sorting' => 'nullable|numeric',
                     'address' => 'nullable|string',
                 ];
