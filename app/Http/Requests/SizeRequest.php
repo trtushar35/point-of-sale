@@ -13,14 +13,14 @@ class SizeRequest extends FormRequest
             case 'POST':
                 return [
                     'category_id' => 'required',
-                    'size' => 'required',
+                    'sizes' => 'required|array|min:1',
                 ];
                 break;
 
             case 'PUT':
                 return [
                     'category_id' => 'required',
-                    'size' => 'required',
+                    'sizes.*' => 'required|string|max:255',
                 ];
                 break;
             case 'PATCH':

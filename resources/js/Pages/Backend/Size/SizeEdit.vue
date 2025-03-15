@@ -11,19 +11,12 @@ const props = defineProps(['Size', 'id', 'categories']);
 
 const form = useForm({
     category_id: props.Size?.category_id ?? '',
-    sizes: props.Size?.sizes ?? [''],
+    size: props.Size?.size ?? '',
 
     _method: props.Size?.id ? 'put' : 'post',
 });
 
-const addSizeField = () => {
-    form.sizes.push('');
-};
-
-const removeSizeField = (index) => {
-    form.sizes.splice(index, 1);
-};
-
+// Handle form submission
 const submit = () => {
     const routesize = props.id ? route('backend.Size.update', props.id) : route('backend.Size.store');
     form.transform(data => ({
@@ -57,9 +50,10 @@ const submit = () => {
 
             <form @submit.prevent="submit" class="p-4">
                 <AlertMessage />
+                <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-4">
 
-                <div class="grid grid-cols-6 gap-4 mb-6">
-                    <div>
+                    <!-- Category Dropdown -->
+                    <div class="col-span-1 md:col-span-1">
                         <InputLabel for="category_id" value="Category Name" />
                         <select id="category_id"
                             class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
@@ -70,53 +64,19 @@ const submit = () => {
                         <InputError class="mt-2" :message="form.errors.category_id" />
                     </div>
 
-                    <div>
+                    <!-- size Field -->
+                    <div class="col-span-1 md:col-span-1">
                         <InputLabel for="size" value="Size" />
                         <input id="size"
                             class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
-                            v-model="form.sizes[0]" type="text" placeholder="" />
-                        <InputError class="mt-2" :message="form.errors[`sizes.0`]" />
+                            v-model="form.size" type="text" placeholder="Size" />
+                        <InputError class="mt-2" :message="form.errors.size" />
                     </div>
 
-                    <div class="flex items-end">
-                        <button type="button" @click="addSizeField"
-                            class="p-2 text-blue-500 hover:text-blue-700 focus:outline-none">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="w-6 h-6" fill="none" viewBox="0 0 24 24"
-                                stroke="currentColor">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                    d="M12 4v16m8-8H4" />
-                            </svg>
-                        </button>
-                    </div>
                 </div>
 
-                <div class="space-y-4">
-                    <div v-for="(size, index) in form.sizes.slice(1)" :key="index + 1" class="grid grid-cols-6 gap-4">
-                        <!-- Empty Column for Alignment -->
-                        <div></div>
-
-                        <div>
-                            <InputLabel :for="`size-${index + 1}`" :value="`Size ${index + 2}`" />
-                            <input :id="`size-${index + 1}`"
-                                class="block w-full p-2 text-sm rounded-md shadow-sm border-slate-300 dark:border-slate-500 dark:bg-slate-700 dark:text-slate-200 focus:border-indigo-300 dark:focus:border-slate-600"
-                                v-model="form.sizes[index + 1]" type="text" />
-                            <InputError class="mt-2" :message="form.errors[`sizes.${index + 1}`]" />
-                        </div>
-
-                        <div class="flex items-end">
-                            <button type="button" class="p-2 text-red-500 hover:text-red-700 focus:outline-none">
-                                <svg @click="removeSizeField(index + 1)" xmlns="http://www.w3.org/2000/svg"
-                                    class="w-6 h-6 text-red-500 cursor-pointer hover:text-red-700" fill="currentColor"
-                                    viewBox="0 0 24 24">
-                                    <path
-                                        d="M6 19C6 19.5523 6.44772 20 7 20H17C17.5523 20 18 19.5523 18 19V9H6V19ZM16 3H8V4H6C5.44772 4 5 4.44772 5 5V6H19V5C19 4.44772 18.5523 4 18 4H16V3Z" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex items-center justify-end mt-6">
+                <!-- Submit Button -->
+                <div class="flex items-center justify-end mt-4">
                     <PrimaryButton type="submit" class="ms-4" :class="{ 'opacity-25': form.processing }"
                         :disabled="form.processing">
                         {{ props.id ? 'Update' : 'Create' }}

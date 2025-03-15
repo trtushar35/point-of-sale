@@ -73,7 +73,10 @@ class SizeController extends Controller
 
     private function getDatas()
     {
-        $query = $this->SizeService->list();
+        $userId = auth('admin')->user()->id;
+        $query = $this->SizeService->list()->whereHas('category', function ($query) use ($userId) {
+            $query->where('author_id', $userId);
+        });
 
         if (request()->filled('name'))
             $query->where('name', 'like', '%' . request()->name . '%');
@@ -125,7 +128,7 @@ class SizeController extends Controller
                     ['link' => null, 'title' => 'Size Manage'],
                     ['link' => route('backend.Size.create'), 'title' => 'Size Create'],
                 ],
-                'categories' => fn() => $this->categoryService->activeList()->get(),
+                'categories' => fn() => $this->categoryService->list()->get(),
             ]
         );
     }
@@ -137,7 +140,14 @@ class SizeController extends Controller
 
             $data = $request->validated();
 
-            $dataInfo = $this->SizeService->create($data);
+            foreach ($data['sizes'] as $size) {
+                $sizeData = [
+                    'category_id' => $data['category_id'],
+                    'size' => $size,
+                ];
+    
+                $dataInfo = $this->SizeService->create($sizeData);
+            }
 
             if ($dataInfo) {
                 $message = 'Size created successfully';
@@ -172,7 +182,7 @@ class SizeController extends Controller
         $Size = $this->SizeService->find($id);
 
         return Inertia::render(
-            'Backend/Size/Form',
+            'Backend/Size/SizeEdit',
             [
                 'pageTitle' => fn() => 'Size Edit',
                 'breadcrumbs' => fn() => [

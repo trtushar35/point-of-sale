@@ -47,8 +47,7 @@ class CategoryController extends Controller
 
     private function getDatas()
     {
-        $authUser = auth('admin')->user();
-        $query = $this->categoryService->list($authUser);
+        $query = $this->categoryService->list();
 
         if (request()->filled('name'))
             $query->where('name', 'like', '%' . request()->name . '%');
