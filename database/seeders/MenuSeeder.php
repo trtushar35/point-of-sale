@@ -62,7 +62,7 @@ class MenuSeeder extends Seeder
                 'route' => null,
                 'description' => null,
                 'sorting' => 1,
-                'permission_name' => 'user-management',
+                'permission_name' => 'admin-management',
                 'status' => 'Active',
                 'children' => [
                     [

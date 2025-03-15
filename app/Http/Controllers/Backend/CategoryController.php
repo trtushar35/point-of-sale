@@ -47,7 +47,8 @@ class CategoryController extends Controller
 
     private function getDatas()
     {
-        $query = $this->categoryService->list();
+        $authUser = auth('admin')->user();
+        $query = $this->categoryService->list($authUser);
 
         if (request()->filled('name'))
             $query->where('name', 'like', '%' . request()->name . '%');
@@ -124,6 +125,8 @@ class CategoryController extends Controller
 
             $data = $request->validated();
 
+            $data['author_id'] = auth('admin')->user()->id;
+            
             $dataInfo = $this->categoryService->create($data);
 
             if ($dataInfo) {

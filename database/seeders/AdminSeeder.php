@@ -2,11 +2,12 @@
 
 namespace Database\Seeders;
 
-use App\Models\Role;
 use App\Models\Admin;
+use App\Models\Permission;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Role;
 use Illuminate\Support\Facades\Hash;
 
 class AdminSeeder extends Seeder
@@ -24,7 +25,7 @@ class AdminSeeder extends Seeder
             'last_name' => 'Developer ',
             'email' => 'admin@gmail.com',
             'phone' => '01612423280',
-            'password' =>'asdasd',
+            'password' => 'asdasd',
             'role_id' => 1,
             'photo' => null,
             'address' => 'RDTL Head Office',
@@ -32,16 +33,28 @@ class AdminSeeder extends Seeder
             'created_at' => now(),
             'updated_at' => now(),
         ]);
-       
-        $admin->assignRole(Role::find(1)->id);
 
-        $admin->assignRole(Role::find(2)->id);
+        $adminRolePermissions = [
+            'Admin' => [
+                Permission::pluck('name'),
+            ]
+        ];
+
+        $admin->assignRole('Admin');
+
+        foreach ($adminRolePermissions as $role => $permissions) {
+            $roleInfo = Role::where('name', $role)->first();
+            if ($roleInfo) {
+                $roleInfo->syncPermissions($permissions);
+            }
+        }
+
     }
 
     protected function previousDatas()
     {
 
-        DB::table('Admins')->insert([
+        $user = DB::table('Admins')->insert([
             'company_id' => 1,
             'first_name' => 'Admin',
             'last_name' => 'Admin',

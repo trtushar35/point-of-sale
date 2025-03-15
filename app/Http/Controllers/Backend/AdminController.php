@@ -164,6 +164,7 @@ class AdminController extends Controller
             $dataInfo = $this->adminService->create($data);
 
             if ($dataInfo) {
+                $dataInfo->assignRole($dataInfo->role->name); 
                 $message = 'User created successfully';
                 $this->storeAdminWorkLog($dataInfo->id, 'admins', $message);
 
@@ -230,6 +231,7 @@ class AdminController extends Controller
 
             $dataInfo = $this->adminService->update($data, $id);
             if ($dataInfo->wasChanged()) {
+                $dataInfo->assignRole($dataInfo->role->name);
                 $message = 'User updated successfully';
                 $this->storeAdminWorkLog($dataInfo->id, 'admins', $message);
 

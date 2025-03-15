@@ -15,6 +15,8 @@ return new class extends Migration
     {
         Schema::create('categories', function (Blueprint $table) {
             $table->id();
+            $table->unsignedBigInteger('author_id')->nullable();
+            $table->foreign('author_id')->references('id')->on('admins')->onDelete('cascade');
             $table->string('name');
 
             $table->enum('status', ['Active', 'Inactive', 'Deleted'])->default('Active');
