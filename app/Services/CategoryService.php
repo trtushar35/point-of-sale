@@ -15,7 +15,7 @@ class CategoryService
 
     public function list()
     {
-        return $this->categoryModel->where('author_id', auth('admin')->user()->id)->whereNull('deleted_at')->where('status', 'Active');
+        return $this->categoryModel->where('author_id', auth('admin')->user()->id)->whereNull('deleted_at');
     }
 
     public function all()

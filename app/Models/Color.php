@@ -9,5 +9,17 @@ class Color extends Model
 {
     use HasFactory;
 
-    protected $guarded = [];
+    protected $fillable = ['author_id', 'name', 'status'];
+
+    protected static function boot()
+    {
+        parent::boot();
+        static::saving(function ($model) {
+            $model->created_at=date('Y-m-d H:i:s');
+        });
+
+        static::updating( function ( $model ) {
+            $model->updated_at=date('Y-m-d H:i:s');
+        } );
+    }
 }

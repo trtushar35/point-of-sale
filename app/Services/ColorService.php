@@ -15,7 +15,7 @@ class ColorService
 
     public function list()
     {
-        return $this->colorModel->whereNull('deleted_at');
+        return $this->colorModel->where('author_id', auth('admin')->user()->id)->whereNull('deleted_at');
     }
 
     public function all()

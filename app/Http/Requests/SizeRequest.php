@@ -20,7 +20,7 @@ class SizeRequest extends FormRequest
             case 'PUT':
                 return [
                     'category_id' => 'required',
-                    'sizes.*' => 'required|string|max:255',
+                    'sizes.*' => 'required',
                 ];
                 break;
             case 'PATCH':

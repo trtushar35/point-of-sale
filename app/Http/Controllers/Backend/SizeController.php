@@ -8,6 +8,7 @@ use App\Services\CategoryService;
 use App\Services\SizeService;
 use App\Traits\SystemTrait;
 use Exception;
+use Illuminate\Auth\Events\Validated;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -31,91 +32,141 @@ class SizeController extends Controller
         $this->middleware('permission:size-delete', ['only' => ['destroy']]);
     }
 
+    // public function index()
+    // {
+    //     return Inertia::render(
+    //         'Backend/Size/Index',
+    //         [
+    //             'pageTitle' => fn() => 'Size List',
+    //             'breadcrumbs' => fn() => [
+    //                 ['link' => null, 'title' => 'Size Manage'],
+    //                 ['link' => route('backend.Size.index'), 'title' => 'Size List'],
+    //             ],
+    //             'tableHeaders' => fn() => $this->getTableHeaders(),
+    //             'dataFields' => fn() => $this->dataFields(),
+    //             'datas' => fn() => $this->getDatas(),
+    //             'categories' => fn() => $this->categoryService->activeList()->get(),
+    //         ]
+    //     );
+    // }
+
+    // private function dataFields()
+    // {
+    //     return [
+    //         ['fieldName' => 'index', 'class' => 'text-center'],
+    //         ['fieldName' => 'category_id', 'class' => 'text-center'],
+    //         ['fieldName' => 'size', 'class' => 'text-center'],
+    //         ['fieldName' => 'status', 'class' => 'text-center'],
+    //     ];
+    // }
+
+    // private function getTableHeaders()
+    // {
+    //     return [
+    //         'Sl/No',
+    //         'Category',
+    //         'Size',
+    //         'Status',
+    //         'Action',
+    //     ];
+    // }
+
+    // private function getDatas()
+    // {
+    //     $userId = auth('admin')->user()->id;
+    //     $query = $this->SizeService->list()->whereHas('category', function ($query) use ($userId) {
+    //         $query->where('author_id', $userId);
+    //     });
+
+    //     if (request()->filled('name'))
+    //         $query->where('name', 'like', '%' . request()->name . '%');
+
+    //     if (request()->filled('category_id'))
+    //         $query->where('category_id', 'like', request()->category_id);
+
+    //     $datas = $query->paginate(request()->numOfData ?? 10)->withQueryString();
+
+    //     $formatedDatas = $datas->map(function ($data, $index) {
+    //         $customData = new \stdClass();
+    //         $customData->index = $index + 1;
+    //         $customData->category_id = $data->category->name;
+    //         $customData->size = $data->size;
+
+    //         $customData->status = getStatusText($data->status);
+    //         $customData->hasLink = true;
+    //         $customData->links = [
+    //             [
+    //                 'linkClass' => 'semi-bold text-white statusChange ' . (($data->status == 'Active') ? "bg-gray-500" : "bg-green-500"),
+    //                 'link' => route('backend.Size.status.change', ['id' => $data->id, 'status' => $data->status == 'Active' ? 'Inactive' : 'Active']),
+    //                 'linkLabel' => getLinkLabel((($data->status == 'Active') ? "Inactive" : "Active"), null, null)
+    //             ],
+    //             [
+    //                 'linkClass' => 'bg-yellow-400 text-black semi-bold',
+    //                 'link' => route('backend.Size.edit',  $data->id),
+    //                 'linkLabel' => getLinkLabel('Edit', null, null)
+    //             ],
+    //             [
+    //                 'linkClass' => 'deleteButton bg-red-500 text-white semi-bold',
+    //                 'link' => route('backend.Size.destroy', $data->id),
+    //                 'linkLabel' => getLinkLabel('Delete', null, null)
+    //             ]
+
+    //         ];
+    //         return $customData;
+    //     });
+
+    //     return regeneratePagination($formatedDatas, $datas->total(), $datas->perPage(), $datas->currentPage());
+    // }
+
     public function index()
-    {
-        return Inertia::render(
-            'Backend/Size/Index',
-            [
-                'pageTitle' => fn() => 'Size List',
-                'breadcrumbs' => fn() => [
-                    ['link' => null, 'title' => 'Size Manage'],
-                    ['link' => route('backend.Size.index'), 'title' => 'Size List'],
-                ],
-                'tableHeaders' => fn() => $this->getTableHeaders(),
-                'dataFields' => fn() => $this->dataFields(),
-                'datas' => fn() => $this->getDatas(),
-                'categories' => fn() => $this->categoryService->activeList()->get(),
-            ]
-        );
-    }
-
-    
-    private function dataFields()
-    {
-        return [
-            ['fieldName' => 'index', 'class' => 'text-center'],
-            ['fieldName' => 'category_id', 'class' => 'text-center'],
-            ['fieldName' => 'size', 'class' => 'text-center'],
-            ['fieldName' => 'status', 'class' => 'text-center'],
-        ];
-    }
-    
-    private function getTableHeaders()
-    {
-        return [
-            'Sl/No',
-            'Category',
-            'Size',
-            'Status',
-            'Action',
-        ];
-    }
-
-    private function getDatas()
     {
         $userId = auth('admin')->user()->id;
         $query = $this->SizeService->list()->whereHas('category', function ($query) use ($userId) {
             $query->where('author_id', $userId);
         });
 
-        if (request()->filled('name'))
-            $query->where('name', 'like', '%' . request()->name . '%');
-        
-            if (request()->filled('category_id'))
-            $query->where('category_id', 'like', request()->category_id);
+        if (request()->filled('category_id')) {
+            $query->where('category_id', request()->category_id);
+        }
 
-        $datas = $query->paginate(request()->numOfData ?? 10)->withQueryString();
+        $sizes = $query->get();
 
-        $formatedDatas = $datas->map(function ($data, $index) {
-            $customData = new \stdClass();
-            $customData->index = $index + 1;
-            $customData->category_id = $data->category->name;
-            $customData->size = $data->size;
+        $groupedSizes = $sizes->groupBy('category.name');
 
-            $customData->status = getStatusText($data->status);
-            $customData->hasLink = true;
-            $customData->links = [
-                [
-                    'linkClass' => 'semi-bold text-white statusChange ' . (($data->status == 'Active') ? "bg-gray-500" : "bg-green-500"),
-                    'link' => route('backend.Size.status.change', ['id' => $data->id, 'status' => $data->status == 'Active' ? 'Inactive' : 'Active']),
-                    'linkLabel' => getLinkLabel((($data->status == 'Active') ? "Inactive" : "Active"), null, null)
+        return Inertia::render(
+            'Backend/Size/Index',
+            [
+                'pageTitle' => 'Size List',
+                'breadcrumbs' => [
+                    ['link' => null, 'title' => 'Size Manage'],
+                    ['link' => route('backend.Size.index'), 'title' => 'Size List'],
                 ],
-                [
-                    'linkClass' => 'bg-yellow-400 text-black semi-bold',
-                    'link' => route('backend.Size.edit',  $data->id),
-                    'linkLabel' => getLinkLabel('Edit', null, null)
+                'groupedSizes' => $groupedSizes,
+                'categories' => $this->categoryService->activeList()->get(),
+                'filters' => request()->only(['category_id']),
+            ]
+        );
+    }
+
+    public function editByCategory($categoryId)
+    {
+        $category = $this->categoryService->find($categoryId);
+        if ($category) {
+            $sizes = $this->SizeService->list()->where('category_id', $categoryId)->get();
+
+            return Inertia::render('Backend/Size/EditByCategory', [
+                'pageTitle' => fn() => 'Edit Sizes for ' . $category->name,
+                'breadcrumbs' => [
+                    ['link' => null, 'title' => 'Edit Size By Category'],
+                    ['link' => route('backend.Size.editByCategory', $categoryId), 'title' => 'Edit Size By Category'],
                 ],
-                [
-                    'linkClass' => 'deleteButton bg-red-500 text-white semi-bold',
-                    'link' => route('backend.Size.destroy', $data->id),
-                    'linkLabel' => getLinkLabel('Delete', null, null)
-                ]
-
-            ];
-            return $customData;
-        });
-
-        return regeneratePagination($formatedDatas, $datas->total(), $datas->perPage(), $datas->currentPage());
+                'category' => $category,
+                'sizes' => $sizes,
+                'categories' => $this->categoryService->activeList()->get(),
+            ]);
+        } else {
+            return redirect()->back()->with('errorMessage', 'Category not found.');
+        }
     }
 
     public function create()
@@ -145,7 +196,7 @@ class SizeController extends Controller
                     'category_id' => $data['category_id'],
                     'size' => $size,
                 ];
-    
+
                 $dataInfo = $this->SizeService->create($sizeData);
             }
 
@@ -177,73 +228,73 @@ class SizeController extends Controller
         }
     }
 
-    public function edit($id)
-    {
-        $Size = $this->SizeService->find($id);
+    // public function edit($id)
+    // {
+    //     $Size = $this->SizeService->find($id);
 
-        return Inertia::render(
-            'Backend/Size/SizeEdit',
-            [
-                'pageTitle' => fn() => 'Size Edit',
-                'breadcrumbs' => fn() => [
-                    ['link' => null, 'title' => 'Size Manage'],
-                    ['link' => route('backend.Size.edit', $Size->id), 'title' => 'Size Edit'],
-                ],
-                'Size' => fn() => $Size,
-                'id' => fn() => $id,
-                'categories' => fn() => $this->categoryService->activeList()->get(),
-            ]
-        );
-    }
+    //     return Inertia::render(
+    //         'Backend/Size/SizeEdit',
+    //         [
+    //             'pageTitle' => fn() => 'Size Edit',
+    //             'breadcrumbs' => fn() => [
+    //                 ['link' => null, 'title' => 'Size Manage'],
+    //                 ['link' => route('backend.Size.edit', $Size->id), 'title' => 'Size Edit'],
+    //             ],
+    //             'Size' => fn() => $Size,
+    //             'id' => fn() => $id,
+    //             'categories' => fn() => $this->categoryService->activeList()->get(),
+    //         ]
+    //     );
+    // }
 
     public function update(SizeRequest $request, $id)
     {
         DB::beginTransaction();
         try {
-            $Size = $this->SizeService->find($id);
             $data = $request->validated();
+            $categoryId = $data['category_id'];
 
-            $dataInfo = $this->SizeService->update($data, $id);
-            if ($dataInfo->wasChanged()) {
-                $message = 'Size updated successfully';
-                $this->storeAdminWorkLog($dataInfo->id, 'Categories', $message);
-
-                DB::commit();
-
-                return redirect()
-                    ->back()
-                    ->with('successMessage', $message);
-            } else {
-                DB::rollBack();
-
-                $message = "Failed To update Size.";
-                return redirect()
-                    ->back()
-                    ->with('errorMessage', $message);
+            foreach ($data['sizes'] as $sizeData) {
+                if (isset($sizeData['id'])) {
+                    $size = $this->SizeService->find($sizeData['id']);
+                    if ($size) {
+                        $size->update(['size' => $sizeData['size']]);
+                    }
+                } else {
+                    $this->SizeService->create([
+                        'category_id' => $categoryId,
+                        'size' => $sizeData['size'],
+                    ]);
+                }
             }
+
+            DB::commit();
+
+            $message = 'Sizes updated successfully';
+            $this->storeAdminWorkLog($id, 'Sizes', $message);
+
+            return redirect()
+                ->back()
+                ->with('successMessage', $message);
         } catch (Exception $err) {
             DB::rollBack();
             $this->storeSystemError('Backend', 'SizeController', 'update', substr($err->getMessage(), 0, 1000));
-            DB::commit();
             $message = "Server Errors Occur. Please Try Again.";
             return redirect()
                 ->back()
                 ->with('errorMessage', $message);
         }
     }
-
-    public function destroy($id)
+    public function delete($id)
     {
         DB::beginTransaction();
 
         try {
-            // Attempt to delete the Size through your service
             $deletionSuccess = $this->SizeService->delete($id);
 
             if ($deletionSuccess) {
                 $message = 'Size deleted successfully';
 
-                // Log the successful deletion (assuming your logging method works)
                 $this->storeAdminWorkLog($id, 'Categories', $message);
 
                 DB::commit();
@@ -269,38 +320,38 @@ class SizeController extends Controller
         }
     }
 
-    public function changeStatus()
-    {
-        DB::beginTransaction();
+    // public function changeStatus()
+    // {
+    //     DB::beginTransaction();
 
-        try {
-            $dataInfo = $this->SizeService->changeStatus(request());
+    //     try {
+    //         $dataInfo = $this->SizeService->changeStatus(request());
 
-            if ($dataInfo->wasChanged()) {
-                $message = 'Size ' . request()->status . ' Successfully';
-                $this->storeAdminWorkLog($dataInfo->id, 'Categories', $message);
+    //         if ($dataInfo->wasChanged()) {
+    //             $message = 'Size ' . request()->status . ' Successfully';
+    //             $this->storeAdminWorkLog($dataInfo->id, 'Categories', $message);
 
-                DB::commit();
+    //             DB::commit();
 
-                return redirect()
-                    ->back()
-                    ->with('successMessage', $message);
-            } else {
-                DB::rollBack();
+    //             return redirect()
+    //                 ->back()
+    //                 ->with('successMessage', $message);
+    //         } else {
+    //             DB::rollBack();
 
-                $message = "Failed To " . request()->status . " Size.";
-                return redirect()
-                    ->back()
-                    ->with('errorMessage', $message);
-            }
-        } catch (Exception $err) {
-            DB::rollBack();
-            $this->storeSystemError('Backend', 'SizeController', 'changeStatus', substr($err->getMessage(), 0, 1000));
-            DB::commit();
-            $message = "Server Errors Occur. Please Try Again.";
-            return redirect()
-                ->back()
-                ->with('errorMessage', $message);
-        }
-    }
+    //             $message = "Failed To " . request()->status . " Size.";
+    //             return redirect()
+    //                 ->back()
+    //                 ->with('errorMessage', $message);
+    //         }
+    //     } catch (Exception $err) {
+    //         DB::rollBack();
+    //         $this->storeSystemError('Backend', 'SizeController', 'changeStatus', substr($err->getMessage(), 0, 1000));
+    //         DB::commit();
+    //         $message = "Server Errors Occur. Please Try Again.";
+    //         return redirect()
+    //             ->back()
+    //             ->with('errorMessage', $message);
+    //     }
+    // }
 }

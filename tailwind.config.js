@@ -18,28 +18,53 @@ export default {
             fontFamily: {
                 sans: ['Ubuntu', ...defaultTheme.fontFamily.sans],
             },
+            colors: {
+                primary: '#4F46E5',
+                secondary: '#10B981',
+            },
+            typography: {
+                DEFAULT: {
+                    css: {
+                        color: '#333',
+                        h1: {
+                            fontSize: '2.5rem',
+                            fontWeight: 'bold',
+                        },
+                    },
+                },
+            },
+            spacing: {
+                '72': '18rem',
+                '84': '21rem',
+                '96': '24rem',
+            },
+            keyframes: {
+                'fade-in': {
+                    '0%': { opacity: '0' },
+                    '100%': { opacity: '1' },
+                },
+            },
+            animation: {
+                'fade-in': 'fade-in 0.5s ease-out',
+            },
         },
         screens: {
             'xs': '340px',
-            // => @media (min-width: 640px) { ... }
             'sm': '640px',
-            // => @media (min-width: 640px) { ... }
-
             'md': '768px',
-            // => @media (min-width: 768px) { ... }
-
             'lg': '1024px',
-            // => @media (min-width: 1024px) { ... }
-
             'xl': '1280px',
-            // => @media (min-width: 1280px) { ... }
-
             '2xl': '1536px',
-            // => @media (min-width: 1536px) { ... }
-          }
+        },
+        container: {
+            padding: {
+                DEFAULT: '1rem',
+                sm: '2rem',
+                lg: '4rem',
+                xl: '5rem',
+            },
+        },
     },
 
     plugins: [forms, typography],
 };
-
-

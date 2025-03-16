@@ -80,6 +80,8 @@ Route::group(['middleware' => 'AdminAuth'], function () {
     // for size
     Route::resource('Size', SizeController::class);
     Route::get('Size/{id}/status/{status}/change', [SizeController::class, 'changeStatus'])->name('Size.status.change');
+    Route::get('/sizes/edit-by-category/{category}', [SizeController::class, 'editByCategory'])->name('Size.editByCategory');
+    Route::get('/size/delete/{sizeId}', [SizeController::class, 'delete'])->name('Size.delete');
 
     // for Color
     Route::resource('Color', ColorController::class);

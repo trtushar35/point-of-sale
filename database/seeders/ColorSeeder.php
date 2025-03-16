@@ -2,8 +2,9 @@
 
 namespace Database\Seeders;
 
+use App\Models\Admin;
 use Illuminate\Database\Seeder;
-use App\Models\Color; // Assuming the Color model exists
+use App\Models\Color;
 
 class ColorSeeder extends Seeder
 {
@@ -36,12 +37,15 @@ class ColorSeeder extends Seeder
             'Violet'
         ];
 
-        // Insert each color into the colors table
-        foreach ($colors as $color) {
-            Color::create([
-                'name' => $color
-            ]);
-        }
+        $users = Admin::all();
 
+        foreach ($users as $user) {
+            foreach ($colors as $color) {
+                Color::firstOrCreate([
+                    'author_id' => $user->id,
+                    'name' => $color,
+                ]);
+            }
+        }
     }
 }

@@ -124,7 +124,8 @@ class ColorController extends Controller
         try {
 
             $data = $request->validated();
-
+            
+            $data['author_id'] = auth('admin')->user()->id;
             $dataInfo = $this->colorService->create($data);
 
             if ($dataInfo) {
