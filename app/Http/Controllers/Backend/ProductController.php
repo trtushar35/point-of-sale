@@ -296,6 +296,7 @@ class ProductController extends Controller
             $categoryInventory->increment('sku');
         } else {
             $this->inventoryService->create([
+                'author_id' => auth('admin')->user()->id,
                 'category_id' => $categoryId,
                 'quantity' => 1,
                 'stock_in' => 1,

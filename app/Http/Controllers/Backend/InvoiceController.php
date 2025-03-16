@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\InvoiceRequest;
 use App\Services\CategoryService;
 use App\Services\ColorService;
+use App\Services\InventoryService;
 use App\Services\InvoiceDetailService;
 use App\Services\InvoiceService;
 use App\Services\ProductService;
@@ -19,9 +20,9 @@ class InvoiceController extends Controller
 {
     use SystemTrait;
 
-    protected $invoiceService, $productService, $colorService, $categoryService, $sizeService, $invoiceDetailsService;
+    protected $invoiceService, $productService, $colorService, $categoryService, $sizeService, $invoiceDetailsService, $inventoryService;
 
-    public function __construct(InvoiceService $invoiceService, ProductService $productService, ColorService $colorService, CategoryService $categoryService, SizeService $sizeService, InvoiceDetailService $invoiceDetailsService)
+    public function __construct(InvoiceService $invoiceService, ProductService $productService, ColorService $colorService, CategoryService $categoryService, SizeService $sizeService, InvoiceDetailService $invoiceDetailsService,InventoryService $inventoryService)
     {
         $this->invoiceService = $invoiceService;
         $this->productService = $productService;
@@ -29,6 +30,7 @@ class InvoiceController extends Controller
         $this->categoryService = $categoryService;
         $this->colorService = $colorService;
         $this->invoiceDetailsService = $invoiceDetailsService;
+        $this->inventoryService = $inventoryService;
 
         $this->middleware('auth:admin');
         $this->middleware('permission:invoice-add', ['only' => ['create']]);
@@ -171,6 +173,7 @@ class InvoiceController extends Controller
             $data = $request->validated();
 
             $invoiceData = [
+                'author_id' => auth('admin')->user()->id,
                 'invoice_date' => now(),
                 'total_price' => $data['total_price']
             ];
@@ -187,6 +190,7 @@ class InvoiceController extends Controller
                     'quantity' => $product['quantity']
                 ];
                 $this->invoiceDetailsService->create($invoiceDetailsData);
+                $this->inventoryService->decreaseStock($productDetails->id, $product['quantity']);
             }
 
             DB::commit();

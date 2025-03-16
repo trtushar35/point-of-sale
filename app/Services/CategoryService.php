@@ -70,6 +70,6 @@ class CategoryService
 
     public function activeList()
     {
-        return $this->categoryModel->whereNull('deleted_at');
+        return $this->categoryModel->whereNull('deleted_at')->where('author_id', auth('admin')->user()->id);
     }
 }

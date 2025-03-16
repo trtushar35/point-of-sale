@@ -44,7 +44,7 @@ class InventoryController extends Controller
                 'tableHeaders' => fn() => $this->getTableHeaders(),
                 'dataFields' => fn() => $this->dataFields(),
                 'datas' => fn() => $this->getDatas(),
-                'categories' => fn() => $this->categoryService->activeList()->get(),
+                'categories' => fn() => $this->categoryService->list()->get(),
             ]
         );
     }
@@ -137,7 +137,7 @@ class InventoryController extends Controller
                     ['link' => null, 'title' => 'Inventory Manage'],
                     ['link' => route('backend.inventory.create'), 'title' => 'Inventory Create'],
                 ],
-                'categories' => fn() => $this->categoryService->activeList()->get(),
+                'categories' => fn() => $this->categoryService->list()->get(),
             ]
         );
     }
@@ -149,6 +149,7 @@ class InventoryController extends Controller
 
             $data = $request->validated();
 
+            $data['author_id'] = auth('admin')->user()->id;
             $dataInfo = $this->inventoryService->create($data);
 
             if ($dataInfo) {

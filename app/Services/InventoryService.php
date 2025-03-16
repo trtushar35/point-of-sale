@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Inventory;
+use App\Models\Product;
 
 class InventoryService
 {
@@ -70,11 +71,21 @@ class InventoryService
 
     public function activeList()
     {
-        return $this->inventoryModel->with('category')->whereNull('deleted_at');
+        return $this->inventoryModel->with('category')->where('author_id', auth('admin')->user()->id)->whereNull('deleted_at');
     }
 
     public function getInventoryByCategory($categoryId)
     {
-        return $this->inventoryModel->where('category_id', $categoryId)->whereNull('deleted_at')->first();
+        return $this->inventoryModel->where('category_id', $categoryId)->where('author_id', auth('admin')->user()->id)->whereNull('deleted_at')->first();
+    }
+
+    public function decreaseStock($productId, $quantity)
+    {
+        $product = Product::find($productId);
+        dd($product);
+        if ($product) {
+            $product->stock_quantity -= $quantity;
+            $product->save();
+        }
     }
 }

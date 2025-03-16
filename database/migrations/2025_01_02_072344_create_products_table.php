@@ -28,7 +28,7 @@ return new class extends Migration
             $table->decimal('price', 11,2)->nullable(); 
             $table->string('image')->nullable();
 
-            $table->enum('status', ['Active', 'Inactive', 'Deleted']); 
+            $table->enum('status', ['Active', 'Inactive', 'Deleted', 'Sold']); 
             $table->softDeletes();
             $table->timestamps();
         });

@@ -70,6 +70,6 @@ class ColorService
 
     public function activeList()
     {
-        return $this->colorModel->whereNull('deleted_at');
+        return $this->colorModel->whereNull('deleted_at')->where('author_id', auth('admin')->user()->id);
     }
 }

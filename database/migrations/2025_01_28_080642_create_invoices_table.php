@@ -15,6 +15,9 @@ return new class extends Migration
     {
         Schema::create('invoices', function (Blueprint $table) {
             $table->id();
+
+            $table->unsignedBigInteger('author_id')->nullable();
+            $table->foreign('author_id')->references('id')->on('admins')->onDelete('cascade');
             $table->dateTime('invoice_date');
             $table->decimal('total_price', 11,2);
 

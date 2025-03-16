@@ -82,7 +82,7 @@ class ProductService
 
     public function userWiseList($userId)
     {
-        return $this->productModel->with('category', 'size', 'color')->where('author_id', $userId)->whereNull('deleted_at');
+        return $this->productModel->with('category', 'size', 'color')->where('author_id', $userId)->whereNull('deleted_at')->where('status', '!=', 'Sold');
     }
 
     public function generateProductNo()
