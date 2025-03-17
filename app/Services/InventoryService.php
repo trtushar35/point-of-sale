@@ -79,13 +79,15 @@ class InventoryService
         return $this->inventoryModel->where('category_id', $categoryId)->where('author_id', auth('admin')->user()->id)->whereNull('deleted_at')->first();
     }
 
-    public function decreaseStock($productId, $quantity)
+    public function decreaseStockByCategory($categoryId, $quantity)
     {
-        $product = Product::find($productId);
-        dd($product);
-        if ($product) {
-            $product->stock_quantity -= $quantity;
-            $product->save();
+        $inventory = $this->inventoryModel->where('category_id', $categoryId)->whereNull('deleted_at')->first();
+
+        if ($inventory) {
+            $inventory->stock_in -= $quantity;
+            $inventory->stock_out += $quantity;
+            $inventory->sku -= $quantity;
+            $inventory->save();
         }
     }
 }

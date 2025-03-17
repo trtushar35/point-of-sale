@@ -183,6 +183,8 @@ class InvoiceController extends Controller
 
                 $productDetails = $this->productService->getByProductNumber($product['product_no']);
 
+                $productDetails->update(['status' => 'Sold']);
+
                 $invoiceDetailsData = [
                     'invoice_id' => $invoiceInformation->id,
                     'product_id' => $productDetails->id,
@@ -190,7 +192,7 @@ class InvoiceController extends Controller
                     'quantity' => $product['quantity']
                 ];
                 $this->invoiceDetailsService->create($invoiceDetailsData);
-                $this->inventoryService->decreaseStock($productDetails->id, $product['quantity']);
+                $this->inventoryService->decreaseStockByCategory($productDetails->category_id, $product['quantity']);
             }
 
             DB::commit();
