@@ -179,7 +179,7 @@ class ProductController extends Controller
         return Inertia::render(
             'Backend/Product/Form',
             [
-                'pageTitle' => fn() => 'Product Create',
+                'pageTitle' => fn() => 'Product Information',
                 'breadcrumbs' => fn() => [
                     ['link' => null, 'title' => 'Product Manage'],
                     ['link' => route('backend.product.create'), 'title' => 'Product Create'],
@@ -193,6 +193,7 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
+        dd($request->all());
         DB::beginTransaction();
         try {
             $data = $request->validated();
