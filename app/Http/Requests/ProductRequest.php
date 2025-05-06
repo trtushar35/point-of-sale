@@ -6,56 +6,30 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class ProductRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     *
-     * @return bool
-     */
     public function rules()
     {
         switch ($this->method()) {
             case 'POST':
                 return [
                     'name' => 'nullable|string|max:255',
-                    'color_id' => 'nullable|array', // Allow color_id to be an array
-                    'color_id.*' => 'exists:colors,id', // Validate each color_id exists in the colors table
-                    'size_id' => 'required|array', // Require size_id to be an array
-                    'size_id.*' => 'exists:sizes,id', // Validate each size_id exists in the sizes table
-                    'category_id' => 'required|exists:categories,id', // Ensure category_id exists in the categories table
-                    'price' => 'required|numeric|min:0', // Ensure price is a number and is not negative
-                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate image file
+                    'color_id' => 'nullable|array',
+                    'color_id.*' => 'exists:colors,id',
+                    'sizes' => 'required|array',
+                    'sizes.*.id' => 'required',
+                    'sizes.*.quantity' => 'required',
+                    'category_id' => 'required|exists:categories,id',
+                    'price' => 'required|numeric|min:0',
+                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
                 ];
-                break;
-
-            case 'PUT':
-                return [
-                    'name' => 'nullable|string|max:255',
-                    'color_id' => 'nullable|array', // Allow color_id to be an array
-                    'color_id.*' => 'exists:colors,id', // Validate each color_id exists in the colors table
-                    'size_id' => 'nullable|array', // Allow size_id to be nullable
-                    'size_id.*' => 'exists:sizes,id|nullable',
-                    'category_id' => 'required|exists:categories,id', // Ensure category_id exists in the categories table
-                    'price' => 'required|numeric|min:0', // Ensure price is a number and is not negative
-                    'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,svg|max:2048', // Validate image file
-                ];
-                break;
-            case 'PATCH':
-
                 break;
         }
     }
 
-    /**
-     * Get custom error messages for validator errors.
-     *
-     * @return array<string, mixed>
-     */
     public function messages()
     {
 
         return [
-            'size_id.required' => __('The size field is required.'),
-            'size_id.*.exists' => __('One or more selected sizes are invalid.'),
+            'sizes.required' => __('The size field is required.'),
             'color_id.*.exists' => __('One or more selected colors are invalid.'),
             'category_id.required' => __('The category field is required.'),
             'category_id.exists' => __('The selected category is invalid.'),

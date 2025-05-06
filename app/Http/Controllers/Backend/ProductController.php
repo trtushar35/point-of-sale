@@ -36,7 +36,7 @@ class ProductController extends Controller
         $this->middleware('permission:product-add', ['only' => ['create', 'store']]);
         $this->middleware('permission:product-edit', ['only' => ['edit|update']]);
         $this->middleware('permission:product-list', ['only' => ['index']]);
-        $this->middleware('permission:product-delete', ['only' => ['destroy']]);
+        // $this->middleware('permission:product-delete', ['only' => ['destroy']]);
     }
 
     public function index()
@@ -173,7 +173,7 @@ class ProductController extends Controller
         $pdf = PDF::loadView('pdf.productsPdf', compact('datas'));
         return $pdf->stream('products_list.pdf');
     }
-    
+
     public function create()
     {
         return Inertia::render(
@@ -193,7 +193,6 @@ class ProductController extends Controller
 
     public function store(ProductRequest $request)
     {
-        dd($request->all());
         DB::beginTransaction();
         try {
             $data = $request->validated();
@@ -203,20 +202,22 @@ class ProductController extends Controller
                 $data['image'] = $this->imageUpload($request->file('image'), 'products');
             }
 
-            $sizes = is_array($request->size_id) ? $request->size_id : ($request->size_id ? [$request->size_id] : []);
-            $colors = is_array($request->color_id) ? $request->color_id : ($request->color_id ? [$request->color_id] : []);
+            $sizes = is_array($request->sizes) ? $request->sizes : [];
+            $colorId = $request->color_id[0] ?? null;
 
-            // If no colors are selected, store only sizes
-            if (empty($colors)) {
-                foreach ($sizes as $size) {
+            foreach ($sizes as $sizeEntry) {
+                $sizeId = $sizeEntry['id']['id'];
+                $quantity = $sizeEntry['quantity'];
+
+                for ($i = 0; $i < $quantity; $i++) {
                     $uniqueProductNo = $this->productService->generateProductNo();
 
                     $product = $this->productService->create([
                         'name' => $data['name'],
                         'author_id' => $data['author_id'],
                         'category_id' => $data['category_id'],
-                        'color_id' => null,
-                        'size_id' => $size,
+                        'color_id' => $colorId,
+                        'size_id' => $sizeId,
                         'price' => $data['price'],
                         'image' => $data['image'] ?? null,
                         'product_no' => $uniqueProductNo,
@@ -224,57 +225,7 @@ class ProductController extends Controller
                     ]);
 
                     $this->updateOrCreateInventory($data['category_id']);
-
                     $this->storeAdminWorkLog($product->id, 'products', 'Product created successfully');
-                }
-            }
-            // If no sizes are selected, store only colors
-            elseif (empty($sizes)) {
-                foreach ($colors as $color) {
-                    $uniqueProductNo = $this->productService->generateProductNo();
-
-                    $product = $this->productService->create([
-                        'name' => $data['name'],
-                        'author_id' => $data['author_id'],
-                        'category_id' => $data['category_id'],
-                        'color_id' => $color,
-                        'size_id' => null, 
-                        'price' => $data['price'],
-                        'image' => $data['image'] ?? null,
-                        'product_no' => $uniqueProductNo,
-                        'status' => $data['status'] ?? 'Active',
-                    ]);
-
-                    // Update or create inventory
-                    $this->updateOrCreateInventory($data['category_id']);
-
-                    $this->storeAdminWorkLog($product->id, 'products', 'Product created successfully');
-                }
-            }
-            // If both colors and sizes are selected, store combinations
-            else {
-                foreach ($sizes as $size) {
-                    foreach ($colors as $color) {
-                        $uniqueProductNo = $this->productService->generateProductNo();
-
-                        $product = $this->productService->create([
-                            'name' => $data['name'],
-                            'author_id' => $data['author_id'],
-                            'category_id' => $data['category_id'],
-                            'color_id' => $color,
-                            'size_id' => $size,
-                            'price' => $data['price'],
-                            'image' => $data['image'] ?? null,
-                            'product_no' => $uniqueProductNo,
-                            'status' => $data['status'] ?? 'Active',
-                        ]);
-
-                        // Update or create inventory
-                        $this->updateOrCreateInventory($data['category_id']);
-
-                        // Log admin action
-                        $this->storeAdminWorkLog($product->id, 'products', 'Product created successfully');
-                    }
                 }
             }
 
